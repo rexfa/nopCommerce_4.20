@@ -38,7 +38,9 @@ namespace Nop.Plugin.Payments.SnapPay.Services
 
         public string PostToWebApi(string url ,string postJSON)
         {
-            _httpClient.DefaultRequestHeaders.Add(HeaderNames.ContentType, "application/json");
+            //_httpClient.DefaultRequestHeaders.Remove(HeaderNames.ContentType);
+            //_httpClient.DefaultRequestHeaders.Add(HeaderNames.ContentType, "application/json");
+            _httpClient.DefaultRequestHeaders.Remove(HeaderNames.Accept);   
             _httpClient.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
 
             //_httpClient.DefaultRequestHeaders.Accept.Add(HeaderNames.ContentType, "application/json");

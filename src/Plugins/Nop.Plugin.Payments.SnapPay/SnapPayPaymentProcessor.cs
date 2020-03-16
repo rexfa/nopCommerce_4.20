@@ -17,6 +17,7 @@ using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Directory;
 using Nop.Services.Localization;
+using Nop.Services.Logging;
 using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
@@ -44,6 +45,8 @@ namespace Nop.Plugin.Payments.SnapPay
         private readonly SnapPayHttpClient _snapPayHttpClient;
         private readonly SnapPayPaymentSettings _snapPayPaymentSettings;
 
+        private readonly ILogger _logger;
+
         #endregion
 
         #region Ctor
@@ -54,6 +57,7 @@ namespace Nop.Plugin.Payments.SnapPay
             IGenericAttributeService genericAttributeService,
             IHttpContextAccessor httpContextAccessor,
             ILocalizationService localizationService,
+            ILogger logger,
             IPaymentService paymentService,
             ISettingService settingService,
             ITaxService taxService,
@@ -67,6 +71,7 @@ namespace Nop.Plugin.Payments.SnapPay
             _genericAttributeService = genericAttributeService;
             _httpContextAccessor = httpContextAccessor;
             _localizationService = localizationService;
+            _logger = logger;
             _paymentService = paymentService;
             _settingService = settingService;
             _taxService = taxService;
@@ -133,7 +138,20 @@ namespace Nop.Plugin.Payments.SnapPay
 
             return success;
         }
+        /// <summary>
+        /// 处理异步回传数据
+        /// </summary>
+        /// <param name="NotifyJson"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public bool GetNotifyData(string NotifyJson,out NotifyData notifyData)
+        {
+            notifyData = JsonConvert.DeserializeObject<NotifyData>(NotifyJson);
+            bool success = notifyData.trans_status.ToLower().Equals("success");
 
+
+            return success;
+        }
         /// <summary>
         /// Create common query parameters for the request 拼接数据
         /// </summary>
@@ -356,9 +374,9 @@ namespace Nop.Plugin.Payments.SnapPay
                 out_order_no = postProcessPaymentRequest.Order.OrderGuid.ToString(),
                 trans_currency = "CAD",
                 description = postProcessPaymentRequest.Order.OrderItems.First().Product.Name,
-                trans_amount =(double)postProcessPaymentRequest.Order.OrderTotal,
+                trans_amount = postProcessPaymentRequest.Order.OrderTotal,
                 notify_url = $"{storeLocation}Plugins/PaymentSnapPay/NotifyHandler",
-                return_url = $"{storeLocation}Plugins/PaymentSnapPay/ReturnHandler",
+                return_url = $"{storeLocation}Plugins/PaymentSnapPay/ReturnHandler?orderno="+ postProcessPaymentRequest.Order.OrderGuid.ToString(),
                 attach =  new AttachClass(),
                 effective_minutes = 30,
                 browser_type =  "PC"
@@ -368,7 +386,11 @@ namespace Nop.Plugin.Payments.SnapPay
             return JsonConvert.SerializeObject(webPaymentData);
 
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="resultJSON"></param>
+        /// <returns></returns>
         private WebAipReturns GetWebAipReturns(string resultJSON)
         {
             var result  = JsonConvert.DeserializeObject<WebAipReturns>(resultJSON);
@@ -399,6 +421,9 @@ namespace Nop.Plugin.Payments.SnapPay
                 "version="+ webPaymentData.version,
             };
             var oString = string.Join("&", parameters);
+            //安全校验码（Key）直接拼接到待签名字符串后面
+            oString = oString + _snapPayPaymentSettings.SigningKey.Trim();
+            //MD5签名
             using (MD5 md5Hash = MD5.Create())
             {
                 byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(oString));
@@ -471,9 +496,20 @@ namespace Nop.Plugin.Payments.SnapPay
             //var url = QueryHelpers.AddQueryString(baseUrl, queryParameters);
 
             string  resultJSON = _snapPayHttpClient.PostToWebApi(baseUrl, queryJson);
-
+            //先post 请求付款网关一次
             var resultClass = GetWebAipReturns(resultJSON);
-            int resuleCode = int.Parse(resultClass.code);
+
+            var storeLocation = _webHelper.GetStoreLocation();
+            int resuleCode = 99999;
+            try
+            {
+                resuleCode = int.Parse(resultClass.code);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Post Api " + resultJSON, ex);
+                //string urlErr = $"{storeLocation}Plugins/PaymentSnapPay/ErrorHandler" + "?json=" + resultJSON;
+            }
             if (resuleCode == 0)
             {
                 string url = resultClass.data.First().webpay_url;
@@ -482,8 +518,10 @@ namespace Nop.Plugin.Payments.SnapPay
             }
             else
             {
-                var storeLocation = _webHelper.GetStoreLocation();
+                
+                //
                 string urlErr = $"{storeLocation}Plugins/PaymentSnapPay/ErrorHandler" +"?json=" + resultJSON;  
+                
                 _httpContextAccessor.HttpContext.Response.Redirect(urlErr);
             }
         }
@@ -749,7 +787,7 @@ namespace Nop.Plugin.Payments.SnapPay
 
             public string out_order_no { get; set; }
             public string trans_currency { get; set; }
-            public double trans_amount { get; set; }
+            public decimal trans_amount { get; set; }
             public string description { get; set; }
             public string notify_url { get; set; }
 
@@ -778,6 +816,34 @@ namespace Nop.Plugin.Payments.SnapPay
             public string merchant_no { get; set; }
             public string trans_status { get; set; }
             public string webpay_url { get; set; }
+        }
+        [Serializable]
+        public class NotifyData
+        {
+            public string app_id { get; set; }
+            public string format { get; set; }
+            public string charset { get; set; }
+            public string sign_type { get; set; }
+            public string sign { get; set; }
+            public string version { get; set; }
+            public string timestamp { get; set; }
+            public string method { get; set; }
+            public string  merchant_no{ get; set; }
+            public string trans_no { get; set; }
+            public string out_order_no { get; set; }
+            public string trans_status { get; set; }
+            public string payment_method { get; set; }
+            public string pay_user_account_id { get; set; }
+            public string trans_currency { get; set; }
+            public decimal exchange_rate { get; set; }
+            public decimal trans_amount { get; set; }
+            public decimal c_trans_fee { get; set; }
+            public decimal customer_paid_amount { get; set; }
+            public decimal discount_bmopc { get; set; }
+            public decimal discount_bpc { get; set; }
+            public string trans_end_time { get; set; }
+            public AttachClass attach { get; set; }
+
         }
         #endregion
     }

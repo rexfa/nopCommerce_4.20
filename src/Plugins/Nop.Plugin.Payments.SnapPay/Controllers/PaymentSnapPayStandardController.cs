@@ -152,8 +152,15 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
             //OrderService.InsertOrderNote(newOrder.OrderId, sb.ToString(), DateTime.UtcNow);
             _logger.Information("SnapPay IPN. Recurring info", new NopException(ipnInfo));
         }
-
-        protected virtual void ProcessPayment(string orderNumber, string ipnInfo, PaymentStatus newPaymentStatus, decimal mcGross, string transactionId)
+        /// <summary>
+        /// 处理交易，修改交易状态
+        /// </summary>
+        /// <param name="orderNumber">订单GUID</param>
+        /// <param name="notifyInfo">信息</param>
+        /// <param name="newPaymentStatus">新状态</param>
+        /// <param name="mcGross">交易金额</param>
+        /// <param name="transactionId">交易号</param>
+        protected virtual void ProcessPayment(string orderNumber, string notifyInfo, PaymentStatus newPaymentStatus, decimal mcGross, string transactionId)
         {
             Guid orderNumberGuid;
 
@@ -170,14 +177,14 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
 
             if (order == null)
             {
-                _logger.Error("SnapPay IPN. Order is not found", new NopException(ipnInfo));
+                _logger.Error("SnapPay notifyInfo. Order is not found", new NopException(notifyInfo));
                 return;
             }
 
             //order note
             order.OrderNotes.Add(new OrderNote
             {
-                Note = ipnInfo,
+                Note = notifyInfo,
                 DisplayToCustomer = false,
                 CreatedOnUtc = DateTime.UtcNow
             });
@@ -187,7 +194,7 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
             //validate order total
             if ((newPaymentStatus == PaymentStatus.Authorized || newPaymentStatus == PaymentStatus.Paid) && !Math.Round(mcGross, 2).Equals(Math.Round(order.OrderTotal, 2)))
             {
-                var errorStr = $"SnapPay IPN. Returned order total {mcGross} doesn't equal order total {order.OrderTotal}. Order# {order.Id}.";
+                var errorStr = $"SnapPay notifyInfo. Returned order total {mcGross} doesn't equal order total {order.OrderTotal}. Order# {order.Id}.";
                 //log
                 _logger.Error(errorStr);
                 //order note
@@ -338,152 +345,44 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
             return Json(new { Result = string.Empty });
         }
         /// <summary>
-        /// ReturnHandler old PDT
+        /// ReturnHandler old PDT 支付完成跳转的页面
         /// </summary>
         /// <returns></returns>
         public IActionResult ReturnHandler()
         {
-            var tx = _webHelper.QueryString<string>("tx");
+            var orderno = _webHelper.QueryString<string>("orderno");
 
             if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.SnapPay") is SnapPayPaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
                 throw new NopException("SnapPay Standard module cannot be loaded");
-
-            if (processor.GetPdtDetails(tx, out var values, out var response))
+            var orderNumberGuid = Guid.Empty;
+            try
             {
-                values.TryGetValue("custom", out var orderNumber);
-                var orderNumberGuid = Guid.Empty;
-                try
-                {
-                    orderNumberGuid = new Guid(orderNumber);
-                }
-                catch
-                {
-                    // ignored
-                }
+                orderNumberGuid = new Guid(orderno);
+            }
+            catch
+            {
+                // ignored
+            }
 
-                var order = _orderService.GetOrderByGuid(orderNumberGuid);
-
-                if (order == null)
-                    return RedirectToAction("Index", "Home", new { area = string.Empty });
-
-                var mcGross = decimal.Zero;
-
-                try
-                {
-                    mcGross = decimal.Parse(values["mc_gross"], new CultureInfo("en-US"));
-                }
-                catch (Exception exc)
-                {
-                    _logger.Error("SnapPay PDT. Error getting mc_gross", exc);
-                }
-
-                values.TryGetValue("payer_status", out var payerStatus);
-                values.TryGetValue("payment_status", out var paymentStatus);
-                values.TryGetValue("pending_reason", out var pendingReason);
-                values.TryGetValue("mc_currency", out var mcCurrency);
-                values.TryGetValue("txn_id", out var txnId);
-                values.TryGetValue("payment_type", out var paymentType);
-                values.TryGetValue("payer_id", out var payerId);
-                values.TryGetValue("receiver_id", out var receiverId);
-                values.TryGetValue("invoice", out var invoice);
-                values.TryGetValue("payment_fee", out var paymentFee);
-
-                var sb = new StringBuilder();
-                sb.AppendLine("SnapPay PDT:");
-                sb.AppendLine("mc_gross: " + mcGross);
-                sb.AppendLine("Payer status: " + payerStatus);
-                sb.AppendLine("Payment status: " + paymentStatus);
-                sb.AppendLine("Pending reason: " + pendingReason);
-                sb.AppendLine("mc_currency: " + mcCurrency);
-                sb.AppendLine("txn_id: " + txnId);
-                sb.AppendLine("payment_type: " + paymentType);
-                sb.AppendLine("payer_id: " + payerId);
-                sb.AppendLine("receiver_id: " + receiverId);
-                sb.AppendLine("invoice: " + invoice);
-                sb.AppendLine("payment_fee: " + paymentFee);
-
-                var newPaymentStatus = SnapPayHelper.GetPaymentStatus(paymentStatus, string.Empty);
-                sb.AppendLine("New payment status: " + newPaymentStatus);
+            var order = _orderService.GetOrderByGuid(orderNumberGuid);
+            if (order == null)
+                return RedirectToAction("Index", "Home", new { area = string.Empty });
 
                 //order note
-                order.OrderNotes.Add(new OrderNote
-                {
-                    Note = sb.ToString(),
-                    DisplayToCustomer = false,
-                    CreatedOnUtc = DateTime.UtcNow
-                });
-                _orderService.UpdateOrder(order);
-
-                //validate order total
-                var orderTotalSentToSnapPay = _genericAttributeService.GetAttribute<decimal?>(order, SnapPayHelper.OrderTotalSentToSnapPay);
-                if (orderTotalSentToSnapPay.HasValue && mcGross != orderTotalSentToSnapPay.Value)
-                {
-                    var errorStr = $"SnapPay PDT. Returned order total {mcGross} doesn't equal order total {order.OrderTotal}. Order# {order.Id}.";
-                    //log
-                    _logger.Error(errorStr);
-                    //order note
-                    order.OrderNotes.Add(new OrderNote
-                    {
-                        Note = errorStr,
-                        DisplayToCustomer = false,
-                        CreatedOnUtc = DateTime.UtcNow
-                    });
-                    _orderService.UpdateOrder(order);
-
-                    return RedirectToAction("Index", "Home", new { area = string.Empty });
-                }
-
-                //clear attribute
-                if (orderTotalSentToSnapPay.HasValue)
-                    _genericAttributeService.SaveAttribute<decimal?>(order, SnapPayHelper.OrderTotalSentToSnapPay, null);
-
-                if (newPaymentStatus != PaymentStatus.Paid)
-                    return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-
-                if (!_orderProcessingService.CanMarkOrderAsPaid(order))
-                    return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-
-                //mark order as paid
-                order.AuthorizationTransactionId = txnId;
-                _orderService.UpdateOrder(order);
-                _orderProcessingService.MarkOrderAsPaid(order);
-
-                return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-            }
-            else
+            order.OrderNotes.Add(new OrderNote
             {
-                if (!values.TryGetValue("custom", out var orderNumber))
-                    orderNumber = _webHelper.QueryString<string>("cm");
+                Note = "SnapPay Web Return.",
+                DisplayToCustomer = false,
+                CreatedOnUtc = DateTime.UtcNow
+            });
+            _orderService.UpdateOrder(order);
 
-                var orderNumberGuid = Guid.Empty;
-
-                try
-                {
-                    orderNumberGuid = new Guid(orderNumber);
-                }
-                catch
-                {
-                    // ignored
-                }
-
-                var order = _orderService.GetOrderByGuid(orderNumberGuid);
-                if (order == null)
-                    return RedirectToAction("Index", "Home", new { area = string.Empty });
-
-                //order note
-                order.OrderNotes.Add(new OrderNote
-                {
-                    Note = "SnapPay PDT failed. " + response,
-                    DisplayToCustomer = false,
-                    CreatedOnUtc = DateTime.UtcNow
-                });
-                _orderService.UpdateOrder(order);
-
-                return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-            }
+            return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
+            
         }
         /// <summary>
-        /// NotifyHandler  ipn   后台通知交互
+        /// NotifyHandler  ipn   后台通知交互  post  json  重点开发对象
+        /// http://www.24aibeauti.com/Plugins/PaymentSnapPay/NotifyHandler
         /// </summary>
         /// <returns></returns>
         public IActionResult NotifyHandler()
@@ -495,14 +394,29 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
                 Request.Body.CopyTo(stream);
                 parameters = stream.ToArray();
             }
-
             var strRequest = Encoding.UTF8.GetString(parameters);
 
-    
-            return Content(strRequest);
+
+            if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.SnapPay") is SnapPayPaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
+                throw new NopException("SnapPay Standard module cannot be loaded");
+
+            if (!processor.GetNotifyData(strRequest, out var notifyData))
+            {
+                _logger.Error("SnapPay Notify failed.", new NopException(strRequest));
+
+                //nothing should be rendered to visitor
+                return Content(string.Empty);
+            }
+            else
+            {
+                ProcessPayment(notifyData.out_order_no, notifyData.method+ notifyData.exchange_rate + notifyData.payment_method + notifyData.customer_paid_amount, PaymentStatus.Paid, notifyData.trans_amount, notifyData.trans_no);
+                string successReponses = "{\"code\": \"0\"}"; 
+                //Content-Type: application/json
+                return Content(successReponses, "application/json");
+            }
         }
         /// <summary>
-        /// 错误显示
+        /// 
         /// </summary>
         /// <returns></returns>
         public IActionResult CancelOrder()
@@ -515,7 +429,11 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
 
             return RedirectToRoute("Homepage");
         }
-
+        /// <summary>
+        /// 错误显示
+        /// http://www.24aibeauti.com/Plugins/PaymentSnapPay/ErrorHandler?json=resultJSON
+        /// </summary>
+        /// <returns></returns>
         public IActionResult ErrorHandler() 
         {
             var json = _webHelper.QueryString<string>("json");
