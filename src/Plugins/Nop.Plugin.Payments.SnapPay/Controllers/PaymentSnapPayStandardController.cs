@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -350,25 +351,18 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
         /// <returns></returns>
         public IActionResult ReturnHandler()
         {
-            var orderno = _webHelper.QueryString<string>("orderno");
+            var out_trade_no = _webHelper.QueryString<string>("out_trade_no");
+            var trade_status = _webHelper.QueryString<string>("trade_status");
 
             if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.SnapPay") is SnapPayPaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
                 throw new NopException("SnapPay Standard module cannot be loaded");
-            var orderNumberGuid = Guid.Empty;
-            try
-            {
-                orderNumberGuid = new Guid(orderno);
-            }
-            catch
-            {
-                // ignored
-            }
 
-            var order = _orderService.GetOrderByGuid(orderNumberGuid);
+            var order = _orderService.GetOrderByAuthorizationTransactionIdAndPaymentMethod(out_trade_no, "SnapPay");
             if (order == null)
                 return RedirectToAction("Index", "Home", new { area = string.Empty });
 
-                //order note
+
+            //order note
             order.OrderNotes.Add(new OrderNote
             {
                 Note = "SnapPay Web Return.",
@@ -395,12 +389,12 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
                 parameters = stream.ToArray();
             }
             var strRequest = Encoding.UTF8.GetString(parameters);
-
+            _logger.Information("NotifyHandler==" + strRequest);
 
             if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.SnapPay") is SnapPayPaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
                 throw new NopException("SnapPay Standard module cannot be loaded");
 
-            if (!processor.GetNotifyData(strRequest, out var notifyData))
+            if (!processor.GetNotifyData(strRequest, out Dictionary<string, string> values))
             {
                 _logger.Error("SnapPay Notify failed.", new NopException(strRequest));
 
@@ -409,7 +403,7 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
             }
             else
             {
-                ProcessPayment(notifyData.out_order_no, notifyData.method+ notifyData.exchange_rate + notifyData.payment_method + notifyData.customer_paid_amount, PaymentStatus.Paid, notifyData.trans_amount, notifyData.trans_no);
+                ProcessPayment(values["out_order_no"], "SnapPayNotify" + values["exchange_rate"] + values["payment_method"] + values["customer_paid_amount"], PaymentStatus.Paid, decimal.Parse(values["trans_amount"]), values["trans_no"]);
                 string successReponses = "{\"code\": \"0\"}"; 
                 //Content-Type: application/json
                 return Content(successReponses, "application/json");

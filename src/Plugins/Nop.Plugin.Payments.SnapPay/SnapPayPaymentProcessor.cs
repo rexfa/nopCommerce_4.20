@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
@@ -38,6 +39,7 @@ namespace Nop.Plugin.Payments.SnapPay
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILocalizationService _localizationService;
+        private readonly IOrderService _orderService;
         private readonly IPaymentService _paymentService;
         private readonly ISettingService _settingService;
         private readonly ITaxService _taxService;
@@ -58,6 +60,7 @@ namespace Nop.Plugin.Payments.SnapPay
             IHttpContextAccessor httpContextAccessor,
             ILocalizationService localizationService,
             ILogger logger,
+            IOrderService orderService,
             IPaymentService paymentService,
             ISettingService settingService,
             ITaxService taxService,
@@ -78,6 +81,8 @@ namespace Nop.Plugin.Payments.SnapPay
             _webHelper = webHelper;
             _snapPayHttpClient = snapPayHttpClient;
             _snapPayPaymentSettings = snapPayPaymentSettings;
+
+            _orderService = orderService;
         }
 
         #endregion
@@ -144,10 +149,10 @@ namespace Nop.Plugin.Payments.SnapPay
         /// <param name="NotifyJson"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public bool GetNotifyData(string NotifyJson,out NotifyData notifyData)
+        public bool GetNotifyData(string NotifyJson, out Dictionary<string, string> values)
         {
-            notifyData = JsonConvert.DeserializeObject<NotifyData>(NotifyJson);
-            bool success = notifyData.trans_status.ToLower().Equals("success");
+            values = JsonConvert.DeserializeObject<Dictionary<string, string>>(NotifyJson);
+            bool success = values["trans_status"].ToLower().Equals("success");
 
 
             return success;
@@ -166,6 +171,7 @@ namespace Nop.Plugin.Payments.SnapPay
             var orderAddress = postProcessPaymentRequest.Order.PickupInStore
                     ? postProcessPaymentRequest.Order.PickupAddress
                     : postProcessPaymentRequest.Order.ShippingAddress;
+            string timestampstring = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
             //create query parameters
             return new Dictionary<string, string>
@@ -181,7 +187,7 @@ namespace Nop.Plugin.Payments.SnapPay
                 ["sign"] = "7e2083699dd510575faa1c72f9e35d43",
                 ["version"] = "1.0",
                 //时间戳
-                ["timestamp"] = "2018-08-02 15:16:51",
+                ["timestamp"] = timestampstring,
                 //此接口固定值为：pay.webpay
                 ["method"] = "pay.webpay",
                 //商户id
@@ -193,44 +199,16 @@ namespace Nop.Plugin.Payments.SnapPay
                 //符合ISO 4217标准的三位字母代码，如：CAD，USD标价币种必须与商户申请的结算币种一致，不填写则默认为CAD
                 ["trans_currency"] = "CAD",
 
-                //["trans_amount"] = Math.Round(postProcessPaymentRequest.Order.OrderTotal, 2).ToString("C"),
+                ["trans_amount"] = Math.Round(postProcessPaymentRequest.Order.OrderTotal, 2).ToString("0.00"),
 
                 ["description"] = postProcessPaymentRequest.Order.Customer.Username + postProcessPaymentRequest.Order.OrderItems.First().Product.Name,
 
                 ["notify_url"] = $"{storeLocation}Plugins/PaymentSnapPay/NotifyHandler",
                 ["return_url"] = $"{storeLocation}Plugins/PaymentSnapPay/ReturnHandler",
 
-                ["attach"]="",
-                //["effective_minutes"] = 15,
+                ["effective_minutes"] = "10",
                 ["browser_type"]= "PC"
 
-                ////set return method to "2" (the customer redirected to the return URL by using the POST method, and all payment variables are included)
-                //["rm"] = "2",
-
-                //["bn"] = SnapPayHelper.NopCommercePartnerCode,
-                //["currency_code"] = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId)?.CurrencyCode,
-
-                ////order identifier
-                //["invoice"] = postProcessPaymentRequest.Order.CustomOrderNumber,
-                //["custom"] = postProcessPaymentRequest.Order.OrderGuid.ToString(),
-
-                ////PDT, IPN and cancel URL
-                //["return"] = $"{storeLocation}Plugins/PaymentSnapPay/PDTHandler",
-                //["notify_url"] = $"{storeLocation}Plugins/PaymentSnapPay/IPNHandler",
-                //["cancel_return"] = $"{storeLocation}Plugins/PaymentSnapPay/CancelOrder",
-
-                ////shipping address, if exists
-                //["no_shipping"] = postProcessPaymentRequest.Order.ShippingStatus == ShippingStatus.ShippingNotRequired ? "1" : "2",
-                //["address_override"] = postProcessPaymentRequest.Order.ShippingStatus == ShippingStatus.ShippingNotRequired ? "0" : "1",
-                //["first_name"] = orderAddress?.FirstName,
-                //["last_name"] = orderAddress?.LastName,
-                //["address1"] = orderAddress?.Address1,
-                //["address2"] = orderAddress?.Address2,
-                //["city"] = orderAddress?.City,
-                //["state"] = orderAddress?.StateProvince?.Abbreviation,
-                //["country"] = orderAddress?.Country?.TwoLetterIsoCode,
-                //["zip"] = orderAddress?.ZipPostalCode,
-                //["email"] = orderAddress?.Email
             };
         }
 
@@ -354,18 +332,18 @@ namespace Nop.Plugin.Payments.SnapPay
             _genericAttributeService.SaveAttribute(postProcessPaymentRequest.Order, SnapPayHelper.OrderTotalSentToSnapPay, roundedOrderTotal);
         }
 
-        private string CreateQueryJSON(PostProcessPaymentRequest postProcessPaymentRequest)
+        private string CreateQueryJSON(PostProcessPaymentRequest postProcessPaymentRequest,string sign)
         {
             //get store location
             var storeLocation = _webHelper.GetStoreLocation();
-            string timestampstring = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string timestampstring = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
             WebPaymentData webPaymentData = new WebPaymentData
             {
                 app_id = _snapPayPaymentSettings.APPID,
                 format= "JSON",
                 charset = "UTF-8",
                 sign_type = "MD5",
-                //sign = _snapPayPaymentSettings.SigningKey,
+                sign = sign,
                 version = "1.0",
                 timestamp = timestampstring,
                 method = "pay.webpay",
@@ -374,18 +352,23 @@ namespace Nop.Plugin.Payments.SnapPay
                 out_order_no = postProcessPaymentRequest.Order.OrderGuid.ToString(),
                 trans_currency = "CAD",
                 description = postProcessPaymentRequest.Order.OrderItems.First().Product.Name,
-                trans_amount = postProcessPaymentRequest.Order.OrderTotal,
+                trans_amount = postProcessPaymentRequest.Order.OrderTotal.ToString("0.00"),
                 notify_url = $"{storeLocation}Plugins/PaymentSnapPay/NotifyHandler",
                 return_url = $"{storeLocation}Plugins/PaymentSnapPay/ReturnHandler?orderno="+ postProcessPaymentRequest.Order.OrderGuid.ToString(),
                 attach =  new AttachClass(),
-                effective_minutes = 30,
+                effective_minutes = 10,
                 browser_type =  "PC"
             };
-            string sign  = GetSign(webPaymentData);
-            webPaymentData.sign = sign;
+            //string sign  = GetSign(webPaymentData);
+            //webPaymentData.sign = sign;
             return JsonConvert.SerializeObject(webPaymentData);
 
         }
+        //private string CreateQueryJSON(IDictionary<string, string> parameters)
+        //{
+        //    string sign = GetSign(parameters);
+
+        //}
         /// <summary>
         /// 
         /// </summary>
@@ -420,11 +403,17 @@ namespace Nop.Plugin.Payments.SnapPay
 
                 "version="+ webPaymentData.version,
             };
+            //for(int i=0; i< parameters.Length; i++)
+            //{
+
+            //    parameters[i] = HttpUtility.UrlEncode(parameters[i]);
+            //}
             var oString = string.Join("&", parameters);
             //安全校验码（Key）直接拼接到待签名字符串后面
             oString = oString + _snapPayPaymentSettings.SigningKey.Trim();
             //MD5签名
-            using (MD5 md5Hash = MD5.Create())
+            //using (MD5 md5Hash = MD5.Create())
+            using (MD5CryptoServiceProvider md5Hash = new MD5CryptoServiceProvider())
             {
                 byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(oString));
                 StringBuilder sBuilder = new StringBuilder();
@@ -437,6 +426,47 @@ namespace Nop.Plugin.Payments.SnapPay
                 return sBuilder.ToString().ToLower();
             }
         }
+        public string GetSign(IDictionary<string, string> parameters)
+        {
+            var vDic = parameters.OrderBy(x => x.Key, new ComparerString()).ToDictionary(x => x.Key, y => y.Value);
+            var str = new StringBuilder();
+            foreach (var kv in vDic)
+            {
+
+                var pvalue = kv.Value;
+                if (string.IsNullOrEmpty(pvalue))
+                    continue;
+                if(kv.Key.Equals("sign_type")||kv.Key.Equals("sign"))
+                    continue;
+                str.Append(kv.Key).Append("=").Append(pvalue).Append("&");
+            }
+
+            var result = str.Remove(str.Length - 1, 1).Append(_snapPayPaymentSettings.SigningKey.Trim()).ToString();
+            //MD5签名
+            using (MD5CryptoServiceProvider md5Hash = new MD5CryptoServiceProvider())
+            {
+                byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(result));
+                StringBuilder sBuilder = new StringBuilder();
+
+                for (int i = 0; i < data.Length; i++)
+                {
+                    sBuilder.Append(data[i].ToString("x2"));
+                }
+                //_logger.Information(result+"----"+ sBuilder.ToString().ToLower());
+                return sBuilder.ToString().ToLower();
+            }
+        }
+        /// <summary>
+        /// 对比
+        /// </summary>
+        public class ComparerString : IComparer<String>
+        {
+            public int Compare(String x, String y)
+            {
+                return string.CompareOrdinal(x, y);
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -461,9 +491,12 @@ namespace Nop.Plugin.Payments.SnapPay
 
 
             //create common query parameters for the request
-            //var queryParameters = CreateQueryParameters(postProcessPaymentRequest);
+            var queryParameters = CreateQueryParameters(postProcessPaymentRequest);
+            string sign = GetSign(queryParameters);
+            queryParameters["sign"] = sign;
             //create post json for the request
-            var queryJson = CreateQueryJSON(postProcessPaymentRequest);
+            //var queryJson = CreateQueryJSON(postProcessPaymentRequest,sign);
+            var queryJson = JsonConvert.SerializeObject(queryParameters);
             //whether to include order items in a transaction
             //if (_snapPayPaymentSettings.PassProductNamesAndTotals)
             //{
@@ -494,7 +527,7 @@ namespace Nop.Plugin.Payments.SnapPay
             //    .ToDictionary(parameter => parameter.Key, parameter => parameter.Value);
 
             //var url = QueryHelpers.AddQueryString(baseUrl, queryParameters);
-
+            //_logger.Information(queryJson);
             string  resultJSON = _snapPayHttpClient.PostToWebApi(baseUrl, queryJson);
             //先post 请求付款网关一次
             var resultClass = GetWebAipReturns(resultJSON);
@@ -510,17 +543,35 @@ namespace Nop.Plugin.Payments.SnapPay
                 _logger.Error("Post Api " + resultJSON, ex);
                 //string urlErr = $"{storeLocation}Plugins/PaymentSnapPay/ErrorHandler" + "?json=" + resultJSON;
             }
+            //成功返回的话得到支付二维码
             if (resuleCode == 0)
             {
-                string url = resultClass.data.First().webpay_url;
+                var transInfo = resultClass.data.First();
+                    
+                string trans_no = transInfo.trans_no;
+                string order_no = transInfo.out_order_no;
+                string url = transInfo.webpay_url;
 
+                var orderNumberGuid = Guid.Empty;
+                try
+                {
+                    orderNumberGuid = new Guid(order_no);
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                var order = _orderService.GetOrderByGuid(orderNumberGuid);
+                order.AuthorizationTransactionId = trans_no;
+                _orderService.UpdateOrder(order);
                 _httpContextAccessor.HttpContext.Response.Redirect(url);
             }
             else
             {
                 
                 //
-                string urlErr = $"{storeLocation}Plugins/PaymentSnapPay/ErrorHandler" +"?json=" + resultJSON;  
+                string urlErr = $"{storeLocation}Plugins/PaymentSnapPay/ErrorHandler" +"?json=" + resultJSON+"&dv=28qwe";  
                 
                 _httpContextAccessor.HttpContext.Response.Redirect(urlErr);
             }
@@ -787,7 +838,7 @@ namespace Nop.Plugin.Payments.SnapPay
 
             public string out_order_no { get; set; }
             public string trans_currency { get; set; }
-            public decimal trans_amount { get; set; }
+            public string trans_amount { get; set; }
             public string description { get; set; }
             public string notify_url { get; set; }
 
