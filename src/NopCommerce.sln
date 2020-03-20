@@ -61,7 +61,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nop.Plugin.Misc.SendinBlue"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nop.Plugin.Tax.Avalara", "Plugins\Nop.Plugin.Tax.Avalara\Nop.Plugin.Tax.Avalara.csproj", "{2426B75D-23D4-41EF-8924-47650C8A18C7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nop.Plugin.Payments.AlphaPayQRCode", "Plugins\Nop.Plugin.Payments.AlphapayQRCode\Nop.Plugin.Payments.AlphaPayQRCode.csproj", "{24B9F5A6-C387-4BA4-9B00-EF515FC2EAAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nop.Plugin.Payments.AlphaPayQRCode", "Plugins\Nop.Plugin.Payments.AlphaPayQRCode\Nop.Plugin.Payments.AlphaPayQRCode.csproj", "{24B9F5A6-C387-4BA4-9B00-EF515FC2EAAF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nop.Plugin.Payments.SnapPay", "Plugins\Nop.Plugin.Payments.SnapPay\Nop.Plugin.Payments.SnapPay.csproj", "{FFECD7AF-6D1A-49F8-9169-E3453B0D6BCF}"
 EndProject

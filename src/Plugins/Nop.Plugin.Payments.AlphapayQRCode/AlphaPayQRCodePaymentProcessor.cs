@@ -141,10 +141,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
         /// <param name="postProcessPaymentRequest"></param>
         public void PostProcessPayment(PostProcessPaymentRequest postProcessPaymentRequest)
         {
-            var baseUrl = _alphaPayQRCodePaymentSettings.UseSandbox ?
-                //"https://www.sandbox.paypal.com/us/cgi-bin/webscr" :
-                throw new Exception("Sandbox payment interface is not yet supported") :
-                "https://pay.alphapay.ca/api/v1.0/gateway";
+            var baseUrl = "https://pay.alphapay.ca/api/v1.0/gateway";
 
             //加入 Path Variable
             baseUrl = baseUrl + "/partners/" + _alphaPayQRCodePaymentSettings.PartnerCode + "/orders/" + postProcessPaymentRequest.Order.OrderGuid.ToString();
