@@ -25,16 +25,6 @@
                 @Html.Raw(T("Plugins.Payments.AlphaPayQRCode.Instructions", $"{webHelper.GetStoreLocation()}Plugins/PaymentAlphaPayQRCode/PDTHandler"))
                 <div class="form-group">
                     <div class="col-md-3">
-                        <nop-override-store-checkbox asp-for="UseSandbox_OverrideForStore" asp-input="UseSandbox" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
-                        <nop-label asp-for="UseSandbox" />
-                    </div>
-                    <div class="col-md-9">
-                        <nop-editor asp-for="UseSandbox" />
-                        <span asp-validation-for="UseSandbox"></span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-3">
                         <nop-override-store-checkbox asp-for="BusinessEmail_OverrideForStore" asp-input="BusinessEmail" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                         <nop-label asp-for="BusinessEmail" />
                     </div>

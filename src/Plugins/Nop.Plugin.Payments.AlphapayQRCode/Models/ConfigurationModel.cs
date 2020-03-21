@@ -7,9 +7,6 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Models
     {
         public int ActiveStoreScopeConfiguration { get; set; }
 
-        [NopResourceDisplayName("Plugins.Payments.AlphaPayQRCode.Fields.UseSandbox")]
-        public bool UseSandbox { get; set; }
-        public bool UseSandbox_OverrideForStore { get; set; }
 
         [NopResourceDisplayName("Plugins.Payments.AlphaPayQRCode.Fields.BusinessEmail")]
         public string BusinessEmail { get; set; }

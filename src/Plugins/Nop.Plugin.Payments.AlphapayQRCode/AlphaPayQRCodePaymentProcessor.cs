@@ -218,37 +218,28 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
             });
 
             //locales
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFee", "Additional fee");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFee.Hint", "Enter additional fee to charge your customers.");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFeePercentage", "Additional fee. Use percentage");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFeePercentage.Hint", "Determines whether to apply a percentage additional fee to the order total. If not enabled, a fixed value is used.");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.BusinessEmail", "Business Email");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.BusinessEmail.Hint", "Specify your SnapPay business email.");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PassProductNamesAndTotals", "Pass product names and order totals to SnapPay");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PassProductNamesAndTotals.Hint", "Check if product names and order totals should be passed to SnapPay.");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PDTToken", "PDT Identity Token");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PDTToken.Hint", "Specify PDT identity token");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.RedirectionTip", "You will be redirected to SnapPay site to complete the order.");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.UseSandbox", "Use Sandbox");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.UseSandbox.Hint", "Check to enable Sandbox (testing environment).");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFee", "附加费用");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFee.Hint", "输入附加费用以向您的客户收费");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFeePercentage", "附加费用。百分比");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFeePercentage.Hint", "确定是否对订单总额应用一定百分比的附加费。 如果未启用，则使用固定值");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PartnerCode", "Partner Code");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PartnerCode.Hint", "Partner Code");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PassProductNamesAndTotals", "将产品名称和订单总数传递给AlphaPay");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PassProductNamesAndTotals.Hint", "将产品名称和订单总数传递给AlphaPay");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.CredentialCode", "Credential Code");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.CredentialCode.Hint", "Credential Code");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.RedirectionTip", "您将被重定向到AlphaPay网站以完成订单");
             _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Instructions", @"
             <p>
-	            <b>If you're using this gateway ensure that your primary store currency is supported by SnapPay.</b>
+	            <b>如果您使用此网关，请确保AlphaPay支持您的主要商店货币</b>
 	            <br />
-	            <br />To use PDT, you must activate PDT and Auto Return in your SnapPay account profile. You must also acquire a PDT identity token, which is used in all PDT communication you send to SnapPay. Follow these steps to configure your account for PDT:<br />
-	            <br />1. Log in to your SnapPay account (click <a href=""https://www.paypal.com/us/webapps/mpp/referral/paypal-business-account2?partner_id=9JJPJNNPQ7PZ8"" target=""_blank"">here</a> to create your account).
-	            <br />2. Click the Profile button.
-	            <br />3. Click the Profile and Settings button.
-	            <br />4. Select the My selling tools item on left panel.
-	            <br />5. Click Website Preferences Update in the Selling online section.
-	            <br />6. Under Auto Return for Website Payments, click the On radio button.
-	            <br />7. For the Return URL, enter the URL on your site that will receive the transaction ID posted by SnapPay after a customer payment ({0}).
-                <br />8. Under Payment Data Transfer, click the On radio button and get your PDT identity token.
-	            <br />9. Click Save.
+	            <br />要使用Partner Code 、Credential Code:<br />
+	            <br />商户后台访问地址  (click <a href=""https://pay.alphapay.ca/"" target=""_blank"">这里</a>).
+	            <br />设置好本服务器设置
 	            <br />
             </p>");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.SnapPay.PaymentMethodDescription", "You will be redirected to SnapPay site to complete the payment");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.SnapPay.RoundingWarning", "It looks like you have \"ShoppingCartSettings.RoundPricesDuringCalculation\" setting disabled. Keep in mind that this can lead to a discrepancy of the order total amount, as SnapPay only rounds to two decimals.");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.PaymentMethodDescription", "您将被重定向到AlphaPay网站以完成付款");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.RoundingWarning", "似乎您已禁用\" ShoppingCartSettings.RoundPricesDuringCalculation \"设置。 请记住，这可能会导致订单总额不一致，因为AlphaPay仅舍入到两位小数");
 
             base.Install();
         }

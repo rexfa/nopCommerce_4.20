@@ -26,8 +26,8 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
         /// <summary>
         /// Gets a payment status
         /// </summary>
-        /// <param name="paymentStatus">SnapPay payment status</param>
-        /// <param name="pendingReason">SnapPay pending reason</param>
+        /// <param name="paymentStatus">AlphaPay payment status</param>
+        /// <param name="pendingReason">AlphaPay pending reason</param>
         /// <returns>Payment status</returns>
         public static PaymentStatus GetPaymentStatus(string paymentStatus, string pendingReason)
         {
