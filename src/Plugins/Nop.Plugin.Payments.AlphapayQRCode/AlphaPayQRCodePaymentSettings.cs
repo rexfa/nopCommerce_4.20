@@ -4,10 +4,6 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
 {
     public class AlphaPayQRCodePaymentSettings : ISettings
     {
-        /// <summary>
-        /// Gets or sets a value indicating whether to use sandbox (testing environment)
-        /// </summary>
-        public bool UseSandbox { get; set; }
 
         /// <summary>
         /// 商户编码，由4位或6位大写字母或数字构成

@@ -8,13 +8,17 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Models
         public int ActiveStoreScopeConfiguration { get; set; }
 
 
-        [NopResourceDisplayName("Plugins.Payments.AlphaPayQRCode.Fields.BusinessEmail")]
-        public string BusinessEmail { get; set; }
-        public bool BusinessEmail_OverrideForStore { get; set; }
+        [NopResourceDisplayName("Plugins.Payments.AlphaPayQRCode.Fields.PartnerCode")]
+        public string PartnerCode { get; set; }
+        public bool PartnerCode_OverrideForStore { get; set; }
 
-        [NopResourceDisplayName("Plugins.Payments.AlphaPayQRCode.Fields.PDTToken")]
-        public string PdtToken { get; set; }
-        public bool PdtToken_OverrideForStore { get; set; }
+        [NopResourceDisplayName("Plugins.Payments.AlphaPayQRCode.Fields.CredentialCode")]
+        public string CredentialCode { get; set; }
+        public bool CredentialCode_OverrideForStore { get; set; }
+
+        [NopResourceDisplayName("Plugins.Payments.AlphaPayQRCode.Fields.APPID")]
+        public string APPID { get; set; }
+        public bool APPID_OverrideForStore { get; set; }
 
         [NopResourceDisplayName("Plugins.Payments.AlphaPayQRCode.Fields.PassProductNamesAndTotals")]
         public bool PassProductNamesAndTotals { get; set; }

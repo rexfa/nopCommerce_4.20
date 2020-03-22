@@ -96,30 +96,30 @@ namespace Nop.Plugin.Payments.SnapPay
         /// <param name="values">Values</param>
         /// <param name="response">Response</param>
         /// <returns>Result</returns>
-        public bool GetPdtDetails(string tx, out Dictionary<string, string> values, out string response)
-        {
-            response = WebUtility.UrlDecode(_snapPayHttpClient.GetPdtDetailsAsync(tx).Result);
+        //public bool GetPdtDetails(string tx, out Dictionary<string, string> values, out string response)
+        //{
+        //    response = WebUtility.UrlDecode(_snapPayHttpClient.GetPdtDetailsAsync(tx).Result);
 
-            values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            bool firstLine = true, success = false;
-            foreach (var l in response.Split('\n'))
-            {
-                var line = l.Trim();
-                if (firstLine)
-                {
-                    success = line.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase);
-                    firstLine = false;
-                }
-                else
-                {
-                    var equalPox = line.IndexOf('=');
-                    if (equalPox >= 0)
-                        values.Add(line.Substring(0, equalPox), line.Substring(equalPox + 1));
-                }
-            }
+        //    values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        //    bool firstLine = true, success = false;
+        //    foreach (var l in response.Split('\n'))
+        //    {
+        //        var line = l.Trim();
+        //        if (firstLine)
+        //        {
+        //            success = line.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase);
+        //            firstLine = false;
+        //        }
+        //        else
+        //        {
+        //            var equalPox = line.IndexOf('=');
+        //            if (equalPox >= 0)
+        //                values.Add(line.Substring(0, equalPox), line.Substring(equalPox + 1));
+        //        }
+        //    }
 
-            return success;
-        }
+        //    return success;
+        //}
 
         /// <summary>
         /// Verifies IPN
@@ -127,22 +127,22 @@ namespace Nop.Plugin.Payments.SnapPay
         /// <param name="formString">Form string</param>
         /// <param name="values">Values</param>
         /// <returns>Result</returns>
-        public bool VerifyIpn(string formString, out Dictionary<string, string> values)
-        {
-            var response = WebUtility.UrlDecode(_snapPayHttpClient.VerifyIpnAsync(formString).Result);
-            var success = response.Trim().Equals("VERIFIED", StringComparison.OrdinalIgnoreCase);
+        //public bool VerifyIpn(string formString, out Dictionary<string, string> values)
+        //{
+        //    var response = WebUtility.UrlDecode(_snapPayHttpClient.VerifyIpnAsync(formString).Result);
+        //    var success = response.Trim().Equals("VERIFIED", StringComparison.OrdinalIgnoreCase);
 
-            values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var l in formString.Split('&'))
-            {
-                var line = l.Trim();
-                var equalPox = line.IndexOf('=');
-                if (equalPox >= 0)
-                    values.Add(line.Substring(0, equalPox), line.Substring(equalPox + 1));
-            }
+        //    values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        //    foreach (var l in formString.Split('&'))
+        //    {
+        //        var line = l.Trim();
+        //        var equalPox = line.IndexOf('=');
+        //        if (equalPox >= 0)
+        //            values.Add(line.Substring(0, equalPox), line.Substring(equalPox + 1));
+        //    }
 
-            return success;
-        }
+        //    return success;
+        //}
         /// <summary>
         /// 处理异步回传数据
         /// </summary>
@@ -332,38 +332,38 @@ namespace Nop.Plugin.Payments.SnapPay
             _genericAttributeService.SaveAttribute(postProcessPaymentRequest.Order, SnapPayHelper.OrderTotalSentToSnapPay, roundedOrderTotal);
         }
 
-        private string CreateQueryJSON(PostProcessPaymentRequest postProcessPaymentRequest,string sign)
-        {
-            //get store location
-            var storeLocation = _webHelper.GetStoreLocation();
-            string timestampstring = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-            WebPaymentData webPaymentData = new WebPaymentData
-            {
-                app_id = _snapPayPaymentSettings.APPID,
-                format= "JSON",
-                charset = "UTF-8",
-                sign_type = "MD5",
-                sign = sign,
-                version = "1.0",
-                timestamp = timestampstring,
-                method = "pay.webpay",
-                merchant_no = _snapPayPaymentSettings.MerchantID,
-                payment_method = "ALIPAY",
-                out_order_no = postProcessPaymentRequest.Order.OrderGuid.ToString(),
-                trans_currency = "CAD",
-                description = postProcessPaymentRequest.Order.OrderItems.First().Product.Name,
-                trans_amount = postProcessPaymentRequest.Order.OrderTotal.ToString("0.00"),
-                notify_url = $"{storeLocation}Plugins/PaymentSnapPay/NotifyHandler",
-                return_url = $"{storeLocation}Plugins/PaymentSnapPay/ReturnHandler?orderno="+ postProcessPaymentRequest.Order.OrderGuid.ToString(),
-                attach =  new AttachClass(),
-                effective_minutes = 10,
-                browser_type =  "PC"
-            };
-            //string sign  = GetSign(webPaymentData);
-            //webPaymentData.sign = sign;
-            return JsonConvert.SerializeObject(webPaymentData);
+        //private string CreateQueryJSON(PostProcessPaymentRequest postProcessPaymentRequest,string sign)
+        //{
+        //    //get store location
+        //    var storeLocation = _webHelper.GetStoreLocation();
+        //    string timestampstring = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+        //    WebPaymentData webPaymentData = new WebPaymentData
+        //    {
+        //        app_id = _snapPayPaymentSettings.APPID,
+        //        format= "JSON",
+        //        charset = "UTF-8",
+        //        sign_type = "MD5",
+        //        sign = sign,
+        //        version = "1.0",
+        //        timestamp = timestampstring,
+        //        method = "pay.webpay",
+        //        merchant_no = _snapPayPaymentSettings.MerchantID,
+        //        payment_method = "ALIPAY",
+        //        out_order_no = postProcessPaymentRequest.Order.OrderGuid.ToString(),
+        //        trans_currency = "CAD",
+        //        description = postProcessPaymentRequest.Order.OrderItems.First().Product.Name,
+        //        trans_amount = postProcessPaymentRequest.Order.OrderTotal.ToString("0.00"),
+        //        notify_url = $"{storeLocation}Plugins/PaymentSnapPay/NotifyHandler",
+        //        return_url = $"{storeLocation}Plugins/PaymentSnapPay/ReturnHandler?orderno="+ postProcessPaymentRequest.Order.OrderGuid.ToString(),
+        //        attach =  new AttachClass(),
+        //        effective_minutes = 10,
+        //        browser_type =  "PC"
+        //    };
+        //    //string sign  = GetSign(webPaymentData);
+        //    //webPaymentData.sign = sign;
+        //    return JsonConvert.SerializeObject(webPaymentData);
 
-        }
+        //}
         //private string CreateQueryJSON(IDictionary<string, string> parameters)
         //{
         //    string sign = GetSign(parameters);
@@ -379,53 +379,53 @@ namespace Nop.Plugin.Payments.SnapPay
             var result  = JsonConvert.DeserializeObject<WebAipReturns>(resultJSON);
             return result;
         }
-        public string GetSign(WebPaymentData webPaymentData)
-        {
-            string[] parameters = new string[]
-            {
-                "app_id="+webPaymentData.app_id,
-                "browser_type="+webPaymentData.browser_type,
-                "charset="+webPaymentData.charset,
-                "description="+ webPaymentData.description,
-                "effective_minutes="+ webPaymentData.effective_minutes.ToString(),
+        //public string GetSign(WebPaymentData webPaymentData)
+        //{
+        //    string[] parameters = new string[]
+        //    {
+        //        "app_id="+webPaymentData.app_id,
+        //        "browser_type="+webPaymentData.browser_type,
+        //        "charset="+webPaymentData.charset,
+        //        "description="+ webPaymentData.description,
+        //        "effective_minutes="+ webPaymentData.effective_minutes.ToString(),
              
-                "format="+webPaymentData.format,
-                "merchant_no="+ webPaymentData.merchant_no,
-                "method="+ webPaymentData.method,
-                "notify_url="+webPaymentData.notify_url,                
-                "out_order_no="+ webPaymentData.out_order_no,
+        //        "format="+webPaymentData.format,
+        //        "merchant_no="+ webPaymentData.merchant_no,
+        //        "method="+ webPaymentData.method,
+        //        "notify_url="+webPaymentData.notify_url,                
+        //        "out_order_no="+ webPaymentData.out_order_no,
 
-                "payment_method="+webPaymentData.payment_method,
-                "return_url="+webPaymentData.return_url,
-                "timestamp="+ webPaymentData.timestamp,
-                "trans_amount="+webPaymentData.trans_amount,
-                "trans_currency="+webPaymentData.trans_currency,
+        //        "payment_method="+webPaymentData.payment_method,
+        //        "return_url="+webPaymentData.return_url,
+        //        "timestamp="+ webPaymentData.timestamp,
+        //        "trans_amount="+webPaymentData.trans_amount,
+        //        "trans_currency="+webPaymentData.trans_currency,
 
-                "version="+ webPaymentData.version,
-            };
-            //for(int i=0; i< parameters.Length; i++)
-            //{
+        //        "version="+ webPaymentData.version,
+        //    };
+        //    //for(int i=0; i< parameters.Length; i++)
+        //    //{
 
-            //    parameters[i] = HttpUtility.UrlEncode(parameters[i]);
-            //}
-            var oString = string.Join("&", parameters);
-            //安全校验码（Key）直接拼接到待签名字符串后面
-            oString = oString + _snapPayPaymentSettings.SigningKey.Trim();
-            //MD5签名
-            //using (MD5 md5Hash = MD5.Create())
-            using (MD5CryptoServiceProvider md5Hash = new MD5CryptoServiceProvider())
-            {
-                byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(oString));
-                StringBuilder sBuilder = new StringBuilder();
+        //    //    parameters[i] = HttpUtility.UrlEncode(parameters[i]);
+        //    //}
+        //    var oString = string.Join("&", parameters);
+        //    //安全校验码（Key）直接拼接到待签名字符串后面
+        //    oString = oString + _snapPayPaymentSettings.SigningKey.Trim();
+        //    //MD5签名
+        //    //using (MD5 md5Hash = MD5.Create())
+        //    using (MD5CryptoServiceProvider md5Hash = new MD5CryptoServiceProvider())
+        //    {
+        //        byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(oString));
+        //        StringBuilder sBuilder = new StringBuilder();
 
-                for (int i = 0; i < data.Length; i++)
-                {
-                    sBuilder.Append(data[i].ToString("x2"));
-                }
+        //        for (int i = 0; i < data.Length; i++)
+        //        {
+        //            sBuilder.Append(data[i].ToString("x2"));
+        //        }
 
-                return sBuilder.ToString().ToLower();
-            }
-        }
+        //        return sBuilder.ToString().ToLower();
+        //    }
+        //}
         public string GetSign(IDictionary<string, string> parameters)
         {
             var vDic = parameters.OrderBy(x => x.Key, new ComparerString()).ToDictionary(x => x.Key, y => y.Value);

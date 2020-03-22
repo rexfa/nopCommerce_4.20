@@ -12,13 +12,16 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Infrastructure
         /// <param name="routeBuilder">Route builder</param>
         public void RegisterRoutes(IRouteBuilder routeBuilder)
         {
-            //PDT
-            routeBuilder.MapRoute("Plugin.Payments.AlphaPayQRCode.PDTHandler", "Plugins/PaymentAlphaPayQRCode/PDTHandler",
-                 new { controller = "PaymentAlphaPayQRCode", action = "PDTHandler" });
+            //Return
+            routeBuilder.MapRoute("Plugin.Payments.AlphaPayQRCode.ReturnHandler", "Plugins/PaymentAlphaPayQRCode/ReturnHandler",
+                 new { controller = "PaymentAlphaPayQRCode", action = "ReturnHandler" });
+            //Notify
+            routeBuilder.MapRoute("Plugin.Payments.AlphaPayQRCode.NotifyHandler", "Plugins/PaymentAlphaPayQRCode/NotifyHandler",
+                 new { controller = "PaymentAlphaPayQRCode", action = "NotifyHandler" });
 
-            //IPN
-            routeBuilder.MapRoute("Plugin.Payments.AlphaPayQRCode.IPNHandler", "Plugins/PaymentAlphaPayQRCode/IPNHandler",
-                 new { controller = "PaymentAlphaPayQRCode", action = "IPNHandler" });
+            //ErrorHandler
+            routeBuilder.MapRoute("Plugin.Payments.AlphaPayQRCode.ErrorHandler", "Plugins/PaymentAlphaPayQRCode/ErrorHandler",
+                 new { controller = "PaymentAlphaPayQRCode", action = "ErrorHandler" });
 
             //Cancel
             routeBuilder.MapRoute("Plugin.Payments.AlphaPayQRCode.CancelOrder", "Plugins/PaymentAlphaPayQRCode/CancelOrder",

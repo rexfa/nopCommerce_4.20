@@ -255,28 +255,28 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
 
             //load settings for a chosen store scope
             var storeScope = _storeContext.ActiveStoreScopeConfiguration;
-            var payPalStandardPaymentSettings = _settingService.LoadSetting<AlphaPayQRCodePaymentSettings>(storeScope);
+            var alphaPayQRCodePaymentSettings = _settingService.LoadSetting<AlphaPayQRCodePaymentSettings>(storeScope);
 
             var model = new ConfigurationModel
             {
-                UseSandbox = payPalStandardPaymentSettings.UseSandbox,
-                BusinessEmail = payPalStandardPaymentSettings.BusinessEmail,
-                PdtToken = payPalStandardPaymentSettings.PdtToken,
-                PassProductNamesAndTotals = payPalStandardPaymentSettings.PassProductNamesAndTotals,
-                AdditionalFee = payPalStandardPaymentSettings.AdditionalFee,
-                AdditionalFeePercentage = payPalStandardPaymentSettings.AdditionalFeePercentage,
+                PartnerCode = alphaPayQRCodePaymentSettings.PartnerCode,
+                APPID = alphaPayQRCodePaymentSettings.APPID,
+                CredentialCode = alphaPayQRCodePaymentSettings.CredentialCode,
+                PassProductNamesAndTotals = alphaPayQRCodePaymentSettings.PassProductNamesAndTotals,
+                AdditionalFee = alphaPayQRCodePaymentSettings.AdditionalFee,
+                AdditionalFeePercentage = alphaPayQRCodePaymentSettings.AdditionalFeePercentage,
                 ActiveStoreScopeConfiguration = storeScope
             };
 
             if (storeScope <= 0)
                 return View("~/Plugins/Payments.AlphaPayQRCode/Views/Configure.cshtml", model);
 
-            model.UseSandbox_OverrideForStore = _settingService.SettingExists(payPalStandardPaymentSettings, x => x.UseSandbox, storeScope);
-            model.BusinessEmail_OverrideForStore = _settingService.SettingExists(payPalStandardPaymentSettings, x => x.BusinessEmail, storeScope);
-            model.PdtToken_OverrideForStore = _settingService.SettingExists(payPalStandardPaymentSettings, x => x.PdtToken, storeScope);
-            model.PassProductNamesAndTotals_OverrideForStore = _settingService.SettingExists(payPalStandardPaymentSettings, x => x.PassProductNamesAndTotals, storeScope);
-            model.AdditionalFee_OverrideForStore = _settingService.SettingExists(payPalStandardPaymentSettings, x => x.AdditionalFee, storeScope);
-            model.AdditionalFeePercentage_OverrideForStore = _settingService.SettingExists(payPalStandardPaymentSettings, x => x.AdditionalFeePercentage, storeScope);
+            model.PartnerCode_OverrideForStore = _settingService.SettingExists(alphaPayQRCodePaymentSettings, x => x.PartnerCode, storeScope);
+            model.APPID_OverrideForStore = _settingService.SettingExists(alphaPayQRCodePaymentSettings, x => x.APPID, storeScope);
+            model.CredentialCode_OverrideForStore = _settingService.SettingExists(alphaPayQRCodePaymentSettings, x => x.CredentialCode, storeScope);
+            model.PassProductNamesAndTotals_OverrideForStore = _settingService.SettingExists(alphaPayQRCodePaymentSettings, x => x.PassProductNamesAndTotals, storeScope);
+            model.AdditionalFee_OverrideForStore = _settingService.SettingExists(alphaPayQRCodePaymentSettings, x => x.AdditionalFee, storeScope);
+            model.AdditionalFeePercentage_OverrideForStore = _settingService.SettingExists(alphaPayQRCodePaymentSettings, x => x.AdditionalFeePercentage, storeScope);
 
             return View("~/Plugins/Payments.AlphaPayQRCode/Views/Configure.cshtml", model);
         }
@@ -295,25 +295,25 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
 
             //load settings for a chosen store scope
             var storeScope = _storeContext.ActiveStoreScopeConfiguration;
-            var payPalStandardPaymentSettings = _settingService.LoadSetting<AlphaPayQRCodePaymentSettings>(storeScope);
+            var alphaPayQRCodePaymentSettings = _settingService.LoadSetting<AlphaPayQRCodePaymentSettings>(storeScope);
 
             //save settings
-            payPalStandardPaymentSettings.UseSandbox = model.UseSandbox;
-            payPalStandardPaymentSettings.BusinessEmail = model.BusinessEmail;
-            payPalStandardPaymentSettings.PdtToken = model.PdtToken;
-            payPalStandardPaymentSettings.PassProductNamesAndTotals = model.PassProductNamesAndTotals;
-            payPalStandardPaymentSettings.AdditionalFee = model.AdditionalFee;
-            payPalStandardPaymentSettings.AdditionalFeePercentage = model.AdditionalFeePercentage;
+            alphaPayQRCodePaymentSettings.PartnerCode = model.PartnerCode;
+            alphaPayQRCodePaymentSettings.APPID = model.APPID;
+            alphaPayQRCodePaymentSettings.CredentialCode = model.CredentialCode;
+            alphaPayQRCodePaymentSettings.PassProductNamesAndTotals = model.PassProductNamesAndTotals;
+            alphaPayQRCodePaymentSettings.AdditionalFee = model.AdditionalFee;
+            alphaPayQRCodePaymentSettings.AdditionalFeePercentage = model.AdditionalFeePercentage;
 
             /* We do not clear cache after each setting update.
              * This behavior can increase performance because cached settings will not be cleared 
              * and loaded from database after each update */
-            _settingService.SaveSettingOverridablePerStore(payPalStandardPaymentSettings, x => x.UseSandbox, model.UseSandbox_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(payPalStandardPaymentSettings, x => x.BusinessEmail, model.BusinessEmail_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(payPalStandardPaymentSettings, x => x.PdtToken, model.PdtToken_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(payPalStandardPaymentSettings, x => x.PassProductNamesAndTotals, model.PassProductNamesAndTotals_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(payPalStandardPaymentSettings, x => x.AdditionalFee, model.AdditionalFee_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(payPalStandardPaymentSettings, x => x.AdditionalFeePercentage, model.AdditionalFeePercentage_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(alphaPayQRCodePaymentSettings, x => x.PartnerCode, model.PartnerCode_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(alphaPayQRCodePaymentSettings, x => x.APPID, model.APPID_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(alphaPayQRCodePaymentSettings, x => x.CredentialCode, model.CredentialCode_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(alphaPayQRCodePaymentSettings, x => x.PassProductNamesAndTotals, model.PassProductNamesAndTotals_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(alphaPayQRCodePaymentSettings, x => x.AdditionalFee, model.AdditionalFee_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(alphaPayQRCodePaymentSettings, x => x.AdditionalFeePercentage, model.AdditionalFeePercentage_OverrideForStore, storeScope, false);
 
             //now clear settings cache
             _settingService.ClearCache();
@@ -338,7 +338,11 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             return Json(new { Result = string.Empty });
         }
 
-        public IActionResult PDTHandler()
+        /// <summary>
+        /// ReturnHandler 支付完成跳转的页面
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult ReturnHandler()
         {
             var tx = _webHelper.QueryString<string>("tx");
 
@@ -479,8 +483,11 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
                 return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
             }
         }
-
-        public IActionResult IPNHandler()
+        /// <summary>
+        /// 异步通知
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult NotifyHandler()
         {
             byte[] parameters;
 
@@ -527,7 +534,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
                 sb.AppendLine(kvp.Key + ": " + kvp.Value);
             }
 
-            var newPaymentStatus = PayPalHelper.GetPaymentStatus(paymentStatus, pendingReason);
+            var newPaymentStatus = AlphaPayQRCodeHelper.GetPaymentStatus(paymentStatus, pendingReason);
             sb.AppendLine("New payment status: " + newPaymentStatus);
 
             var ipnInfo = sb.ToString();
@@ -578,7 +585,16 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
 
             return RedirectToRoute("Homepage");
         }
-
+        /// <summary>
+        /// 错误显示
+        /// http://www.24aibeauti.com/Plugins/PaymentAlphaPayQRCode/ErrorHandler?json=resultJSON
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult ErrorHandler()
+        {
+            var json = _webHelper.QueryString<string>("json");
+            return Content(json);
+        }
         #endregion
     }
 }
