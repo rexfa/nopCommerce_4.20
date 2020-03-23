@@ -355,7 +355,7 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
             var trade_status = _webHelper.QueryString<string>("trade_status");
 
             if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.SnapPay") is SnapPayPaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
-                throw new NopException("SnapPay Standard module cannot be loaded");
+                throw new NopException("SnapPay module cannot be loaded");
 
             var order = _orderService.GetOrderByAuthorizationTransactionIdAndPaymentMethod(out_trade_no, "SnapPay");
             if (order == null)
@@ -392,7 +392,7 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
             _logger.Information("NotifyHandler==" + strRequest);
 
             if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.SnapPay") is SnapPayPaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
-                throw new NopException("SnapPay Standard module cannot be loaded");
+                throw new NopException("SnapPay module cannot be loaded");
 
             if (!processor.GetNotifyData(strRequest, out Dictionary<string, string> values))
             {

@@ -324,6 +324,22 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
             return dt;
         }
         /// <summary>
+        /// 校验sign是否合法
+        /// </summary>
+        /// <param name="formString"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public bool VerifyNotify(string formString, out Dictionary<string, string> values)
+        {
+            values = JsonConvert.DeserializeObject<Dictionary<string, string>>(formString);
+
+            values.TryGetValue("nonce_str", out var nonce_str);
+            values.TryGetValue("time", out var time);
+            values.TryGetValue("sign", out var sign);
+            var locSign = GetSign(_alphaPayQRCodePaymentSettings.PartnerCode, time, nonce_str, _alphaPayQRCodePaymentSettings.CredentialCode);
+            return locSign.Equals(sign);            
+        }
+        /// <summary>
         /// Create common query parameters for the request
         /// </summary>
         /// <param name="postProcessPaymentRequest">Payment info required for an order processing</param>

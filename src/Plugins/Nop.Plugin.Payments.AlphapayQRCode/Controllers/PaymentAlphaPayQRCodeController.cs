@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
+//using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
@@ -152,8 +153,15 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             //OrderService.InsertOrderNote(newOrder.OrderId, sb.ToString(), DateTime.UtcNow);
             _logger.Information("PayPal IPN. Recurring info", new NopException(ipnInfo));
         }
-
-        protected virtual void ProcessPayment(string orderNumber, string ipnInfo, PaymentStatus newPaymentStatus, decimal mcGross, string transactionId)
+        /// <summary>
+        /// 处理交易，修改交易状态
+        /// </summary>
+        /// <param name="orderNumber">订单GUID</param>
+        /// <param name="notifyInfo">信息</param>
+        /// <param name="newPaymentStatus">新状态</param>
+        /// <param name="mcGross">交易金额</param>
+        /// <param name="transactionId">交易号</param>
+        protected virtual void ProcessPayment(string orderNumber, string notifyInfo, PaymentStatus newPaymentStatus, decimal mcGross, string transactionId)
         {
             Guid orderNumberGuid;
 
@@ -170,14 +178,14 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
 
             if (order == null)
             {
-                _logger.Error("PayPal IPN. Order is not found", new NopException(ipnInfo));
+                _logger.Error("AlphaPay. Order is not found", new NopException(notifyInfo));
                 return;
             }
 
             //order note
             order.OrderNotes.Add(new OrderNote
             {
-                Note = ipnInfo,
+                Note = notifyInfo,
                 DisplayToCustomer = false,
                 CreatedOnUtc = DateTime.UtcNow
             });
@@ -187,7 +195,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             //validate order total
             if ((newPaymentStatus == PaymentStatus.Authorized || newPaymentStatus == PaymentStatus.Paid) && !Math.Round(mcGross, 2).Equals(Math.Round(order.OrderTotal, 2)))
             {
-                var errorStr = $"PayPal IPN. Returned order total {mcGross} doesn't equal order total {order.OrderTotal}. Order# {order.Id}.";
+                var errorStr = $"AlphaPay. Returned order total {mcGross} doesn't equal order total {order.OrderTotal}. Order# {order.Id}.";
                 //log
                 _logger.Error(errorStr);
                 //order note
@@ -344,144 +352,79 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
         /// <returns></returns>
         public IActionResult ReturnHandler()
         {
-            var tx = _webHelper.QueryString<string>("tx");
+            byte[] parameters;
+
+            using (var stream = new MemoryStream())
+            {
+                Request.Body.CopyTo(stream);
+                parameters = stream.ToArray();
+            }
+            //获取全部Json
+            var strRequest = Encoding.ASCII.GetString(parameters);
+
+
 
             if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.AlphaPayQRCode") is AlphaPayQRCodePaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
-                throw new NopException("PayPal Standard module cannot be loaded");
+                throw new NopException("AlphaPay QRCode module cannot be loaded");
 
-            if (processor.GetPdtDetails(tx, out var values, out var response))
+            //var notifyJsonClass = JsonConvert.DeserializeObject<NotifyJsonClass>(strRequest);
+
+            if (!processor.VerifyNotify(strRequest, out var values))
             {
-                values.TryGetValue("custom", out var orderNumber);
-                var orderNumberGuid = Guid.Empty;
-                try
-                {
-                    orderNumberGuid = new Guid(orderNumber);
-                }
-                catch
-                {
-                    // ignored
-                }
+                _logger.Error("Sign verify failed.", new NopException(strRequest));
 
-                var order = _orderService.GetOrderByGuid(orderNumberGuid);
-
-                if (order == null)
-                    return RedirectToAction("Index", "Home", new { area = string.Empty });
-
-                var mcGross = decimal.Zero;
-
-                try
-                {
-                    mcGross = decimal.Parse(values["mc_gross"], new CultureInfo("en-US"));
-                }
-                catch (Exception exc)
-                {
-                    _logger.Error("PayPal PDT. Error getting mc_gross", exc);
-                }
-
-                values.TryGetValue("payer_status", out var payerStatus);
-                values.TryGetValue("payment_status", out var paymentStatus);
-                values.TryGetValue("pending_reason", out var pendingReason);
-                values.TryGetValue("mc_currency", out var mcCurrency);
-                values.TryGetValue("txn_id", out var txnId);
-                values.TryGetValue("payment_type", out var paymentType);
-                values.TryGetValue("payer_id", out var payerId);
-                values.TryGetValue("receiver_id", out var receiverId);
-                values.TryGetValue("invoice", out var invoice);
-                values.TryGetValue("payment_fee", out var paymentFee);
-
-                var sb = new StringBuilder();
-                sb.AppendLine("PayPal PDT:");
-                sb.AppendLine("mc_gross: " + mcGross);
-                sb.AppendLine("Payer status: " + payerStatus);
-                sb.AppendLine("Payment status: " + paymentStatus);
-                sb.AppendLine("Pending reason: " + pendingReason);
-                sb.AppendLine("mc_currency: " + mcCurrency);
-                sb.AppendLine("txn_id: " + txnId);
-                sb.AppendLine("payment_type: " + paymentType);
-                sb.AppendLine("payer_id: " + payerId);
-                sb.AppendLine("receiver_id: " + receiverId);
-                sb.AppendLine("invoice: " + invoice);
-                sb.AppendLine("payment_fee: " + paymentFee);
-
-                var newPaymentStatus = PayPalHelper.GetPaymentStatus(paymentStatus, string.Empty);
-                sb.AppendLine("New payment status: " + newPaymentStatus);
-
-                //order note
-                order.OrderNotes.Add(new OrderNote
-                {
-                    Note = sb.ToString(),
-                    DisplayToCustomer = false,
-                    CreatedOnUtc = DateTime.UtcNow
-                });
-                _orderService.UpdateOrder(order);
-
-                //validate order total
-                var orderTotalSentToPayPal = _genericAttributeService.GetAttribute<decimal?>(order, PayPalHelper.OrderTotalSentToPayPal);
-                if (orderTotalSentToPayPal.HasValue && mcGross != orderTotalSentToPayPal.Value)
-                {
-                    var errorStr = $"PayPal PDT. Returned order total {mcGross} doesn't equal order total {order.OrderTotal}. Order# {order.Id}.";
-                    //log
-                    _logger.Error(errorStr);
-                    //order note
-                    order.OrderNotes.Add(new OrderNote
-                    {
-                        Note = errorStr,
-                        DisplayToCustomer = false,
-                        CreatedOnUtc = DateTime.UtcNow
-                    });
-                    _orderService.UpdateOrder(order);
-
-                    return RedirectToAction("Index", "Home", new { area = string.Empty });
-                }
-
-                //clear attribute
-                if (orderTotalSentToPayPal.HasValue)
-                    _genericAttributeService.SaveAttribute<decimal?>(order, PayPalHelper.OrderTotalSentToPayPal, null);
-
-                if (newPaymentStatus != PaymentStatus.Paid)
-                    return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-
-                if (!_orderProcessingService.CanMarkOrderAsPaid(order))
-                    return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-
-                //mark order as paid
-                order.AuthorizationTransactionId = txnId;
-                _orderService.UpdateOrder(order);
-                _orderProcessingService.MarkOrderAsPaid(order);
-
-                return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
+                //nothing should be rendered to visitor
+                return Content(string.Empty);
             }
-            else
+            //total_fee	String	订单金额，单位是最小货币单位
+            //real_fee String  支付金额，单位是最小货币单位
+            var mcGross = decimal.Zero;
+
+            try
             {
-                if (!values.TryGetValue("custom", out var orderNumber))
-                    orderNumber = _webHelper.QueryString<string>("cm");
-
-                var orderNumberGuid = Guid.Empty;
-
-                try
-                {
-                    orderNumberGuid = new Guid(orderNumber);
-                }
-                catch
-                {
-                    // ignored
-                }
-
-                var order = _orderService.GetOrderByGuid(orderNumberGuid);
-                if (order == null)
-                    return RedirectToAction("Index", "Home", new { area = string.Empty });
-
-                //order note
-                order.OrderNotes.Add(new OrderNote
-                {
-                    Note = "PayPal PDT failed. " + response,
-                    DisplayToCustomer = false,
-                    CreatedOnUtc = DateTime.UtcNow
-                });
-                _orderService.UpdateOrder(order);
-
-                return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
+                mcGross = decimal.Parse(values["real_fee"], new CultureInfo("en-US"));
             }
+            catch
+            {
+                // ignored
+            }
+            values.TryGetValue("total_fee", out var total_fee);
+            values.TryGetValue("partner_order_id", out var partner_order_id);//商户订单ID
+            values.TryGetValue("order_id", out var order_id);//AlphaPay 订单ID
+            values.TryGetValue("rate", out var rate);//交易时使用的汇率，1CAD=?CNY
+            values.TryGetValue("create_time", out var create_time); //订单创建时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
+            values.TryGetValue("pay_time", out var pay_time); //订单支付时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
+            values.TryGetValue("channel", out var channel); //支付渠道 Alipay、Wechat
+
+            var sb = new StringBuilder();
+            sb.AppendLine("AlphaPayQRCode Return:");
+            foreach (var kvp in values)
+            {
+                sb.AppendLine(kvp.Key + ": " + kvp.Value);
+            }
+
+            //var newPaymentStatus = AlphaPayQRCodeHelper.GetPaymentStatus(paymentStatus, pendingReason);
+            var newPaymentStatus = PaymentStatus.Paid;
+            sb.AppendLine("New payment status: " + newPaymentStatus);
+
+            var ipnInfo = sb.ToString();
+
+            var orderNumberGuid = Guid.Empty;
+            try
+            {
+                orderNumberGuid = new Guid(partner_order_id);
+            }
+            catch
+            {
+                // ignored
+            }
+
+            var order = _orderService.GetOrderByGuid(orderNumberGuid);
+            //不判断，直接处理付款
+            ProcessPayment(partner_order_id, ipnInfo, newPaymentStatus, mcGross, order_id);
+
+            return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
+            
         }
         /// <summary>
         /// 异步通知
@@ -496,81 +439,89 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
                 Request.Body.CopyTo(stream);
                 parameters = stream.ToArray();
             }
-
+            //获取全部Json
             var strRequest = Encoding.ASCII.GetString(parameters);
 
-            if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.AlphaPayQRCode") is AlphaPayQRCodePaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
-                throw new NopException("PayPal Standard module cannot be loaded");
+            
 
-            if (!processor.VerifyIpn(strRequest, out var values))
+            if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.AlphaPayQRCode") is AlphaPayQRCodePaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
+                throw new NopException("AlphaPay QRCode module cannot be loaded");
+
+            //var notifyJsonClass = JsonConvert.DeserializeObject<NotifyJsonClass>(strRequest);
+
+            if (!processor.VerifyNotify(strRequest, out var values))
             {
-                _logger.Error("PayPal IPN failed.", new NopException(strRequest));
+                _logger.Error("Sign verify failed.", new NopException(strRequest));
 
                 //nothing should be rendered to visitor
                 return Content(string.Empty);
             }
-
+            //total_fee	String	订单金额，单位是最小货币单位
+            //real_fee String  支付金额，单位是最小货币单位
             var mcGross = decimal.Zero;
 
             try
             {
-                mcGross = decimal.Parse(values["mc_gross"], new CultureInfo("en-US"));
+                mcGross = decimal.Parse(values["real_fee"], new CultureInfo("en-US"));
             }
             catch
             {
                 // ignored
             }
-
-            values.TryGetValue("payment_status", out var paymentStatus);
-            values.TryGetValue("pending_reason", out var pendingReason);
-            values.TryGetValue("txn_id", out var txnId);
-            values.TryGetValue("txn_type", out var txnType);
-            values.TryGetValue("rp_invoice_id", out var rpInvoiceId);
+            values.TryGetValue("total_fee", out var total_fee);
+            values.TryGetValue("partner_order_id", out var partner_order_id);//商户订单ID
+            values.TryGetValue("order_id", out var order_id);//AlphaPay 订单ID
+            values.TryGetValue("rate", out var rate);//交易时使用的汇率，1CAD=?CNY
+            values.TryGetValue("create_time", out var create_time); //订单创建时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
+            values.TryGetValue("pay_time", out var pay_time); //订单支付时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
+            values.TryGetValue("channel", out var channel); //支付渠道 Alipay、Wechat
 
             var sb = new StringBuilder();
-            sb.AppendLine("PayPal IPN:");
+            sb.AppendLine("AlphaPayQRCode Notify:");
             foreach (var kvp in values)
             {
                 sb.AppendLine(kvp.Key + ": " + kvp.Value);
             }
 
-            var newPaymentStatus = AlphaPayQRCodeHelper.GetPaymentStatus(paymentStatus, pendingReason);
+            //var newPaymentStatus = AlphaPayQRCodeHelper.GetPaymentStatus(paymentStatus, pendingReason);
+            var newPaymentStatus = PaymentStatus.Paid;
             sb.AppendLine("New payment status: " + newPaymentStatus);
 
             var ipnInfo = sb.ToString();
 
-            switch (txnType)
-            {
-                case "recurring_payment":
-                    ProcessRecurringPayment(rpInvoiceId, newPaymentStatus, txnId, ipnInfo);
-                    break;
-                case "recurring_payment_failed":
-                    if (Guid.TryParse(rpInvoiceId, out var orderGuid))
-                    {
-                        var order = _orderService.GetOrderByGuid(orderGuid);
-                        if (order != null)
-                        {
-                            var recurringPayment = _orderService.SearchRecurringPayments(initialOrderId: order.Id)
-                                .FirstOrDefault();
-                            //failed payment
-                            if (recurringPayment != null)
-                                _orderProcessingService.ProcessNextRecurringPayment(recurringPayment,
-                                    new ProcessPaymentResult
-                                    {
-                                        Errors = new[] { txnType },
-                                        RecurringPaymentFailed = true
-                                    });
-                        }
-                    }
+            //switch (txnType)
+            //{
+            //    case "recurring_payment":
+            //        ProcessRecurringPayment(rpInvoiceId, newPaymentStatus, txnId, ipnInfo);
+            //        break;
+            //    case "recurring_payment_failed":
+            //        if (Guid.TryParse(rpInvoiceId, out var orderGuid))
+            //        {
+            //            var order = _orderService.GetOrderByGuid(orderGuid);
+            //            if (order != null)
+            //            {
+            //                var recurringPayment = _orderService.SearchRecurringPayments(initialOrderId: order.Id)
+            //                    .FirstOrDefault();
+            //                //failed payment
+            //                if (recurringPayment != null)
+            //                    _orderProcessingService.ProcessNextRecurringPayment(recurringPayment,
+            //                        new ProcessPaymentResult
+            //                        {
+            //                            Errors = new[] { txnType },
+            //                            RecurringPaymentFailed = true
+            //                        });
+            //            }
+            //        }
 
-                    break;
-                default:
-                    values.TryGetValue("custom", out var orderNumber);
-                    ProcessPayment(orderNumber, ipnInfo, newPaymentStatus, mcGross, txnId);
+            //        break;
+            //    default:
+            //        values.TryGetValue("custom", out var orderNumber);
+            //        ProcessPayment(orderNumber, ipnInfo, newPaymentStatus, mcGross, txnId);
 
-                    break;
-            }
-
+            //        break;
+            //}
+            //不判断，直接处理付款
+            ProcessPayment(partner_order_id, ipnInfo, newPaymentStatus, mcGross, order_id);
             //nothing should be rendered to visitor
             return Content(string.Empty);
         }
@@ -595,6 +546,24 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             var json = _webHelper.QueryString<string>("json");
             return Content(json);
         }
+        #endregion
+        #region Json Class
+        //[Serializable]
+        //class NotifyJsonClass
+        //{
+        //    public long time { get; set; }
+        //    public string nonce_str { get; set; }
+        //    public string sign { get; set; }
+        //    public string partner_order_id { get; set; }
+        //    public string order_id { get; set; }
+        //    public string total_fee { get; set; }
+        //    public string real_fee { get; set; }
+        //    public double rate { get; set; }
+        //    public string currency { get; set; }
+        //    public string channel { get; set; }
+        //    public string create_time { get; set; } // 订单创建时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
+        //    public string pay_time { get; set; }  // 订单支付时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
+        //}
         #endregion
     }
 }
