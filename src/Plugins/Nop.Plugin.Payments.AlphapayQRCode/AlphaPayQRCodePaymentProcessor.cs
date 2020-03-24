@@ -18,6 +18,7 @@ using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Directory;
 using Nop.Services.Localization;
+using Nop.Services.Logging;
 using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
@@ -42,6 +43,8 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
         private readonly AlphaPayQRCodeHttpClient _alphaPayQRCodeyHttpClient;
         private readonly AlphaPayQRCodePaymentSettings _alphaPayQRCodePaymentSettings;
 
+        private readonly ILogger _logger;
+
         #endregion
 
         #region Ctor
@@ -52,6 +55,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
             IGenericAttributeService genericAttributeService,
             IHttpContextAccessor httpContextAccessor,
             ILocalizationService localizationService,
+            ILogger logger,
             IPaymentService paymentService,
             ISettingService settingService,
             ITaxService taxService,
@@ -65,6 +69,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
             _genericAttributeService = genericAttributeService;
             _httpContextAccessor = httpContextAccessor;
             _localizationService = localizationService;
+            _logger = logger;
             _paymentService = paymentService;
             _settingService = settingService;
             _taxService = taxService;
@@ -105,37 +110,50 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
         #region Methods
         public CancelRecurringPaymentResult CancelRecurringPayment(CancelRecurringPaymentRequest cancelPaymentRequest)
         {
-            throw new NotImplementedException();
+            return new CancelRecurringPaymentResult { Errors = new[] { "Recurring payment not supported" } };
         }
 
         public bool CanRePostProcessPayment(Order order)
         {
-            throw new NotImplementedException();
+            if (order == null)
+                throw new ArgumentNullException(nameof(order));
+
+            //let's ensure that at least 5 seconds passed after order is placed
+            //P.S. there's no any particular reason for that. we just do it
+            if ((DateTime.UtcNow - order.CreatedOnUtc).TotalSeconds < 5)
+                return false;
+
+            return true;
         }
 
         public CapturePaymentResult Capture(CapturePaymentRequest capturePaymentRequest)
         {
-            throw new NotImplementedException();
+            return new CapturePaymentResult { Errors = new[] { "Capture method not supported" } };
         }
 
         public decimal GetAdditionalHandlingFee(IList<ShoppingCartItem> cart)
         {
-            throw new NotImplementedException();
+            return _paymentService.CalculateAdditionalFee(cart,
+                _alphaPayQRCodePaymentSettings.AdditionalFee, _alphaPayQRCodePaymentSettings.AdditionalFeePercentage);
         }
 
         public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
         {
-            throw new NotImplementedException();
+            return new ProcessPaymentRequest();
+        }
+        public override string GetConfigurationPageUrl()
+        {
+            return $"{_webHelper.GetStoreLocation()}Admin/PaymentAlphaPayQRCode/Configure";
         }
 
         public string GetPublicViewComponentName()
         {
-            throw new NotImplementedException();
+            return "PaymentAlphaPayQRCode";
         }
 
         public bool HidePaymentMethod(IList<ShoppingCartItem> cart)
         {
-            throw new NotImplementedException();
+            return false;
         }
         /// <summary>
         /// Post process payment (used by payment gateways that require redirecting to a third-party URL) 支付主要方法，调用第三方URL完成支付
@@ -143,7 +161,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
         /// <param name="postProcessPaymentRequest"></param>
         public void PostProcessPayment(PostProcessPaymentRequest postProcessPaymentRequest)
         {
-            var baseUrl = "https://pay.alphapay.ca/api/v1.0/gateway";
+            var baseUrl = @"https://pay.alphapay.ca/api/v1.0/gateway";
             //get store location
             var storeLocation = _webHelper.GetStoreLocation();
 
@@ -152,7 +170,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
             var url = baseUrl + "/partners/" + _alphaPayQRCodePaymentSettings.PartnerCode + "/orders/" + postProcessPaymentRequest.Order.OrderGuid.ToString();
             //create common query parameters for the request
             var queryJson = CreateQueryJSON(postProcessPaymentRequest);
-
+            var queryParameters = CreateQueryParameters(postProcessPaymentRequest);
             //var queryParameters = CreateQueryParameters(postProcessPaymentRequest);
             //whether to include order items in a transaction
             //if (_alphaPayQRCodePaymentSettings.PassProductNamesAndTotals)
@@ -183,9 +201,13 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
 
             //var url = QueryHelpers.AddQueryString(baseUrl, queryParameters);
 
-            string resultJSON = _alphaPayQRCodeyHttpClient.PutToWebApi(baseUrl, queryJson);
+            url = QueryHelpers.AddQueryString(url, queryParameters);
+
+            _logger.Information("Put AlphaPay Json : " + url + "  Put:"+ queryJson);
+            string resultJSON = _alphaPayQRCodeyHttpClient.PutToWebApi(url, queryJson);
+            _logger.Information("Get AlphaPay Result : " + resultJSON);
             var webAipQRCodeReturns = GetWebAipQRCodeReturns(resultJSON);
-            if (webAipQRCodeReturns.result_code.Equals("SUCCESS") && webAipQRCodeReturns.partner_code.Equals("_alphaPayQRCodePaymentSettings.PartnerCode"))
+            if (webAipQRCodeReturns.result_code.Equals("SUCCESS") && webAipQRCodeReturns.partner_code.Equals(_alphaPayQRCodePaymentSettings.PartnerCode))
             {
                 var pay_url = webAipQRCodeReturns.pay_url;
                 var payUrlQueryParameters = CreatePayUrlQueryParameters(webAipQRCodeReturns);
@@ -202,27 +224,27 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
 
         public ProcessPaymentResult ProcessPayment(ProcessPaymentRequest processPaymentRequest)
         {
-            throw new NotImplementedException();
+            return new ProcessPaymentResult();
         }
 
         public ProcessPaymentResult ProcessRecurringPayment(ProcessPaymentRequest processPaymentRequest)
         {
-            throw new NotImplementedException();
+            return new ProcessPaymentResult { Errors = new[] { "Recurring payment not supported" } };
         }
 
         public RefundPaymentResult Refund(RefundPaymentRequest refundPaymentRequest)
         {
-            throw new NotImplementedException();
+            return new RefundPaymentResult { Errors = new[] { "Refund method not supported" } };
         }
 
         public IList<string> ValidatePaymentForm(IFormCollection form)
         {
-            throw new NotImplementedException();
+            return new List<string>();
         }
 
         public VoidPaymentResult Void(VoidPaymentRequest voidPaymentRequest)
         {
-            throw new NotImplementedException();
+            return new VoidPaymentResult { Errors = new[] { "Void method not supported" } };
         }
 
         /// <summary>
@@ -264,6 +286,34 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
 
             base.Install();
         }
+
+        /// <summary>
+        /// Uninstall the plugin
+        /// </summary>
+        public override void Uninstall()
+        {
+            //settings
+            _settingService.DeleteSetting<AlphaPayQRCodePaymentSettings>();
+
+            //locales
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFee");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFee.Hint");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFeePercentage");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.AdditionalFeePercentage.Hint");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PartnerCode");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PartnerCode.Hint");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PassProductNamesAndTotals");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.PassProductNamesAndTotals.Hint");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.CredentialCode");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.CredentialCode.Hint");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.APPID");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.APPID.Hint");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Fields.RedirectionTip");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.Instructions");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.PaymentMethodDescription");
+            _localizationService.DeletePluginLocaleResource("Plugins.Payments.AlphaPayQRCode.RoundingWarning");
+            base.Uninstall();
+        }
         #endregion
 
         #region Utilities
@@ -304,13 +354,13 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
         }
 
         /// <summary> 
-        /// 获取时间戳 
+        /// 获取时间戳  注意毫秒
         /// </summary> 
         /// <returns>UTC</returns> 
         public string GetUTCTimeStampString()
         {
             TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            return Convert.ToInt64(ts.TotalSeconds).ToString();
+            return Convert.ToInt64(ts.TotalMilliseconds).ToString();
         }
         /// <summary>
         /// 转换时间戳为C#时间

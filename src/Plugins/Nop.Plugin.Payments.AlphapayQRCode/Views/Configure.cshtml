@@ -22,25 +22,35 @@
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-body">
-                @Html.Raw(T("Plugins.Payments.AlphaPayQRCode.Instructions", $"{webHelper.GetStoreLocation()}Plugins/PaymentAlphaPayQRCode/PDTHandler"))
+                @Html.Raw(T("Plugins.Payments.AlphaPayQRCode.Instructions", $"{webHelper.GetStoreLocation()}Plugins/PaymentAlphaPayQRCode/ReturnHandler"))
                 <div class="form-group">
                     <div class="col-md-3">
-                        <nop-override-store-checkbox asp-for="BusinessEmail_OverrideForStore" asp-input="BusinessEmail" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
-                        <nop-label asp-for="BusinessEmail" />
+                        <nop-override-store-checkbox asp-for="PartnerCode_OverrideForStore" asp-input="PartnerCode" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="PartnerCode" />
                     </div>
                     <div class="col-md-9">
-                        <nop-editor asp-for="BusinessEmail" />
-                        <span asp-validation-for="BusinessEmail"></span>
+                        <nop-editor asp-for="PartnerCode" />
+                        <span asp-validation-for="PartnerCode"></span>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-3">
-                        <nop-override-store-checkbox asp-for="PdtToken_OverrideForStore" asp-input="PdtToken" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
-                        <nop-label asp-for="PdtToken" />
+                        <nop-override-store-checkbox asp-for="CredentialCode_OverrideForStore" asp-input="CredentialCode" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="CredentialCode" />
                     </div>
                     <div class="col-md-9">
-                        <nop-editor asp-for="PdtToken" />
-                        <span asp-validation-for="PdtToken"></span>
+                        <nop-editor asp-for="CredentialCode" />
+                        <span asp-validation-for="CredentialCode"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="APPID_OverrideForStore" asp-input="APPID" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="APPID" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="APPID" />
+                        <span asp-validation-for="APPID"></span>
                     </div>
                 </div>
                 <div class="form-group">

@@ -1,10 +1,11 @@
 {
-  "exclude": [
-    "**/bin",
-    "**/bower_components",
-    "**/jspm_packages",
-    "**/node_modules",
-    "**/obj",
-    "**/platforms"
-  ]
+  "Group": "Payment methods",
+  "FriendlyName": "AlphaPay QRCode",
+  "SystemName": "Payments.AlphaPayQRCode",
+  "Version": "1.00",
+  "SupportedVersions": [ "4.20" ],
+  "Author": "nopCommerce team",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Payments.AlphaPayQRCode.dll",
+  "Description": "This plugin allows paying with AlphaPay QRCode"
 }

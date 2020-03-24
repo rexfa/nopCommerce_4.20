@@ -378,11 +378,12 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             }
             //total_fee	String	订单金额，单位是最小货币单位
             //real_fee String  支付金额，单位是最小货币单位
+            //mcGross AlphaPay 是乘100的
             var mcGross = decimal.Zero;
 
             try
             {
-                mcGross = decimal.Parse(values["real_fee"], new CultureInfo("en-US"));
+                mcGross = decimal.Parse(values["real_fee"], new CultureInfo("en-US"))/100;
             }
             catch
             {
@@ -458,11 +459,12 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             }
             //total_fee	String	订单金额，单位是最小货币单位
             //real_fee String  支付金额，单位是最小货币单位
+            //mcGross AlphaPay 是乘100的
             var mcGross = decimal.Zero;
 
             try
             {
-                mcGross = decimal.Parse(values["real_fee"], new CultureInfo("en-US"));
+                mcGross = decimal.Parse(values["real_fee"], new CultureInfo("en-US"))/100;
             }
             catch
             {
