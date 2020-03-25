@@ -77,6 +77,13 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
         #endregion
 
         #region Utilities
+        /// <summary>
+        /// 处理重复付费
+        /// </summary>
+        /// <param name="invoiceId"></param>
+        /// <param name="newPaymentStatus"></param>
+        /// <param name="transactionId"></param>
+        /// <param name="ipnInfo"></param>
 
         protected virtual void ProcessRecurringPayment(string invoiceId, PaymentStatus newPaymentStatus, string transactionId, string ipnInfo)
         {
@@ -94,7 +101,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             var order = _orderService.GetOrderByGuid(orderNumberGuid);
             if (order == null)
             {
-                _logger.Error("PayPal IPN. Order is not found", new NopException(ipnInfo));
+                _logger.Error("AlphaPayQRCode IPN. Order is not found", new NopException(ipnInfo));
                 return;
             }
 
@@ -142,7 +149,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
                         //failed payment
                         var failedPaymentResult = new ProcessPaymentResult
                         {
-                            Errors = new[] { $"PayPal IPN. Recurring payment is {nameof(PaymentStatus.Voided).ToLower()} ." },
+                            Errors = new[] { $"AlphaPayQRCode IPN. Recurring payment is {nameof(PaymentStatus.Voided).ToLower()} ." },
                             RecurringPaymentFailed = true
                         };
                         _orderProcessingService.ProcessNextRecurringPayment(rp, failedPaymentResult);
@@ -151,7 +158,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             }
 
             //OrderService.InsertOrderNote(newOrder.OrderId, sb.ToString(), DateTime.UtcNow);
-            _logger.Information("PayPal IPN. Recurring info", new NopException(ipnInfo));
+            _logger.Information("AlphaPayQRCode IPN. Recurring info", new NopException(ipnInfo));
         }
         /// <summary>
         /// 处理交易，修改交易状态
@@ -331,7 +338,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             return Configure();
         }
 
-        //action displaying notification (warning) to a store owner about inaccurate PayPal rounding
+        //action displaying notification (warning) to a store owner about inaccurate AlphaPayQRCode rounding
         [AuthorizeAdmin]
         [Area(AreaNames.Admin)]
         public IActionResult RoundingWarning(bool passProductNamesAndTotals)
@@ -352,80 +359,83 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
         /// <returns></returns>
         public IActionResult ReturnHandler()
         {
-            byte[] parameters;
+            //byte[] parameters;
 
-            using (var stream = new MemoryStream())
-            {
-                Request.Body.CopyTo(stream);
-                parameters = stream.ToArray();
-            }
-            //获取全部Json
-            var strRequest = Encoding.ASCII.GetString(parameters);
+            //using (var stream = new MemoryStream())
+            //{
+            //    Request.Body.CopyTo(stream);
+            //    parameters = stream.ToArray();
+            //}
+            ////获取全部Json
+            //var strRequest = Encoding.ASCII.GetString(parameters);
+            //_logger.Information("ReturnHandler : " + strRequest);
 
 
+            //if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.AlphaPayQRCode") is AlphaPayQRCodePaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
+            //    throw new NopException("AlphaPay QRCode module cannot be loaded");
 
-            if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.AlphaPayQRCode") is AlphaPayQRCodePaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
-                throw new NopException("AlphaPay QRCode module cannot be loaded");
+            ////var notifyJsonClass = JsonConvert.DeserializeObject<NotifyJsonClass>(strRequest);
 
-            //var notifyJsonClass = JsonConvert.DeserializeObject<NotifyJsonClass>(strRequest);
+            //if (!processor.VerifyNotify(strRequest, out var values))
+            //{
+            //    _logger.Error("Sign verify failed.", new NopException(strRequest));
 
-            if (!processor.VerifyNotify(strRequest, out var values))
-            {
-                _logger.Error("Sign verify failed.", new NopException(strRequest));
+            //    //nothing should be rendered to visitor
+            //    return Content(string.Empty);
+            //}
+            ////total_fee	String	订单金额，单位是最小货币单位
+            ////real_fee String  支付金额，单位是最小货币单位
+            ////mcGross AlphaPay 是乘100的
+            //var mcGross = decimal.Zero;
 
-                //nothing should be rendered to visitor
-                return Content(string.Empty);
-            }
-            //total_fee	String	订单金额，单位是最小货币单位
-            //real_fee String  支付金额，单位是最小货币单位
-            //mcGross AlphaPay 是乘100的
-            var mcGross = decimal.Zero;
+            //try
+            //{
+            //    mcGross = decimal.Parse(values["real_fee"], new CultureInfo("en-US"))/100;
+            //}
+            //catch
+            //{
+            //    // ignored
+            //}
+            //values.TryGetValue("total_fee", out var total_fee);
+            //values.TryGetValue("partner_order_id", out var partner_order_id);//商户订单ID
+            //values.TryGetValue("order_id", out var order_id);//AlphaPay 订单ID
+            //values.TryGetValue("rate", out var rate);//交易时使用的汇率，1CAD=?CNY
+            //values.TryGetValue("create_time", out var create_time); //订单创建时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
+            //values.TryGetValue("pay_time", out var pay_time); //订单支付时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
+            //values.TryGetValue("channel", out var channel); //支付渠道 Alipay、Wechat
 
-            try
-            {
-                mcGross = decimal.Parse(values["real_fee"], new CultureInfo("en-US"))/100;
-            }
-            catch
-            {
-                // ignored
-            }
-            values.TryGetValue("total_fee", out var total_fee);
-            values.TryGetValue("partner_order_id", out var partner_order_id);//商户订单ID
-            values.TryGetValue("order_id", out var order_id);//AlphaPay 订单ID
-            values.TryGetValue("rate", out var rate);//交易时使用的汇率，1CAD=?CNY
-            values.TryGetValue("create_time", out var create_time); //订单创建时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
-            values.TryGetValue("pay_time", out var pay_time); //订单支付时间（最新订单为准）（yyyy-MM-dd HH:mm:ss，加拿大西部时间）
-            values.TryGetValue("channel", out var channel); //支付渠道 Alipay、Wechat
+            //var sb = new StringBuilder();
+            //sb.AppendLine("AlphaPayQRCode Return:");
+            //foreach (var kvp in values)
+            //{
+            //    sb.AppendLine(kvp.Key + ": " + kvp.Value);
+            //}
 
-            var sb = new StringBuilder();
-            sb.AppendLine("AlphaPayQRCode Return:");
-            foreach (var kvp in values)
-            {
-                sb.AppendLine(kvp.Key + ": " + kvp.Value);
-            }
+            ////var newPaymentStatus = AlphaPayQRCodeHelper.GetPaymentStatus(paymentStatus, pendingReason);
+            //var newPaymentStatus = PaymentStatus.Paid;
+            //sb.AppendLine("New payment status: " + newPaymentStatus);
 
-            //var newPaymentStatus = AlphaPayQRCodeHelper.GetPaymentStatus(paymentStatus, pendingReason);
-            var newPaymentStatus = PaymentStatus.Paid;
-            sb.AppendLine("New payment status: " + newPaymentStatus);
+            //var ipnInfo = sb.ToString();
 
-            var ipnInfo = sb.ToString();
+            //var orderNumberGuid = Guid.Empty;
+            //try
+            //{
+            //    orderNumberGuid = new Guid(partner_order_id);
+            //}
+            //catch
+            //{
+            //    // ignored
+            //}
 
-            var orderNumberGuid = Guid.Empty;
-            try
-            {
-                orderNumberGuid = new Guid(partner_order_id);
-            }
-            catch
-            {
-                // ignored
-            }
+            //var order = _orderService.GetOrderByGuid(orderNumberGuid);
+            ////不判断，直接处理付款
+            //ProcessPayment(partner_order_id, ipnInfo, newPaymentStatus, mcGross, order_id);
 
-            var order = _orderService.GetOrderByGuid(orderNumberGuid);
-            //不判断，直接处理付款
-            ProcessPayment(partner_order_id, ipnInfo, newPaymentStatus, mcGross, order_id);
+            //return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
+            //return RedirectToRoute("CustomerInfo");
+            return View("~/Plugins/Payments.AlphaPayQRCode/Views/PaymentCompleted.cshtml");
 
-            return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-            
+
         }
         /// <summary>
         /// 异步通知
@@ -443,7 +453,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Controllers
             //获取全部Json
             var strRequest = Encoding.ASCII.GetString(parameters);
 
-            
+            _logger.Information("NotifyHandler : " + strRequest);
 
             if (!(_paymentPluginManager.LoadPluginBySystemName("Payments.AlphaPayQRCode") is AlphaPayQRCodePaymentProcessor processor) || !_paymentPluginManager.IsPluginActive(processor))
                 throw new NopException("AlphaPay QRCode module cannot be loaded");

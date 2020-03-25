@@ -19,7 +19,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode.Infrastructure
         /// <param name="configuration">Configuration of the application</param>
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            //client to request PayPal services
+            //client to request AlphaPayQRCode services
             services.AddHttpClient<AlphaPayQRCodeHttpClient>().WithProxy();
         }
 

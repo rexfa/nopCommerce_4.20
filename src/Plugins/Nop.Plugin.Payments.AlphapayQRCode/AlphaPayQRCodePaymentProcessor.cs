@@ -461,7 +461,7 @@ namespace Nop.Plugin.Payments.AlphaPayQRCode
             var dict = new Dictionary<string, string>
             {
                 ["nonce_str"] = nonceStr,
-                ["redirect"] = $"{storeLocation}Plugins/PaymentAlphaPayQRCode/NotifyHandler",
+                ["redirect"] = $"{storeLocation}Plugins/PaymentAlphaPayQRCode/ReturnHandler",
                 ["sign"] = GetSign(_alphaPayQRCodePaymentSettings.PartnerCode, timeStr, nonceStr, _alphaPayQRCodePaymentSettings.CredentialCode),
                 ["time"] = timeStr
             };
