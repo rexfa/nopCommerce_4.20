@@ -1,0 +1,23 @@
+<xsd:schema targetNamespace="http://www.rush.com/XMLSchema/XOLTWS/RushS/v1.0" xmlns:rushs="http://www.rush.com/XMLSchema/XOLTWS/RushS/v1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<xsd:element name="RushSecurity">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="UsernameToken">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Username" type="xsd:string"/>
+							<xsd:element name="Password" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="ServiceAccessToken">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="AccessLicenseNumber" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

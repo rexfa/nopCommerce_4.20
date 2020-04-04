@@ -1,11 +1,11 @@
 ﻿using Nop.Core.Domain.Payments;
 
-namespace Nop.Plugin.Payments.SnapPay
+namespace Rexfa.Plugin.CDN
 {
     /// <summary>
     /// Represents SnapPay helper
     /// </summary>
-    public class SnapPayHelper
+    public class RexCDNHelper
     {
         #region Properties
 

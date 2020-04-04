@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Rexfa.cc",
+  "FriendlyName": "Rex CDN",
+  "SystemName": "Rexfa.Plugin.CDN",
+  "Version": "1.00",
+  "SupportedVersions": [ "4.20" ],
+  "Author": "Rex Zhang",
+  "DisplayOrder": 1,
+  "FileName": "Rexfa.Plugin.CDN.dll",
+  "Description": "Multi-domain output static files for CDN"
+}
