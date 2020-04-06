@@ -372,7 +372,7 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
             _orderService.UpdateOrder(order);
 
             return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-            
+
         }
         /// <summary>
         /// NotifyHandler  ipn   后台通知交互  post  json  重点开发对象
@@ -404,7 +404,7 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
             else
             {
                 ProcessPayment(values["out_order_no"], "SnapPayNotify" + values["exchange_rate"] + values["payment_method"] + values["customer_paid_amount"], PaymentStatus.Paid, decimal.Parse(values["trans_amount"]), values["trans_no"]);
-                string successReponses = "{\"code\": \"0\"}"; 
+                string successReponses = "{\"code\": \"0\"}";
                 //Content-Type: application/json
                 return Content(successReponses, "application/json");
             }
@@ -428,7 +428,7 @@ namespace Nop.Plugin.Payments.SnapPay.Controllers
         /// http://www.24aibeauti.com/Plugins/PaymentSnapPay/ErrorHandler?json=resultJSON
         /// </summary>
         /// <returns></returns>
-        public IActionResult ErrorHandler() 
+        public IActionResult ErrorHandler()
         {
             var json = _webHelper.QueryString<string>("json");
             return Content(json);

@@ -2,7 +2,7 @@
 using Nop.Core.Configuration;
 using Nop.Core.Infrastructure;
 using Nop.Core.Infrastructure.DependencyManagement;
-using Nop.Plugin.Shipping.Rush.Services;
+using Rexfa.Plugin.CDN.Services;
 
 namespace Rexfa.Plugin.CDN.Infrastructure
 {

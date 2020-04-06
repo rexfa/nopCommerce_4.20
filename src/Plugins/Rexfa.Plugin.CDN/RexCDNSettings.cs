@@ -22,8 +22,8 @@ namespace Rexfa.Plugin.CDN
         /// <summary>
         /// Gets or sets the username
         /// </summary>
-        public string CSSFileDomainNanme { get; set; }
-        public bool UseCSSFileDomainNanme { get; set; }
+        public string CSSFileDomainName { get; set; }
+        public bool UseCSSFileDomainName { get; set; }
 
     }
 }
