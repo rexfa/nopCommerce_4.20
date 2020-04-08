@@ -1,5 +1,4 @@
 ﻿using Nop.Core.Configuration;
-using Nop.Plugin.Shipping.Rush.Domain;
 
 namespace Rexfa.Plugin.CDN
 {

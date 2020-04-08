@@ -2,17 +2,16 @@
 using System.Linq;
 using Microsoft.AspNetCore.Routing;
 using Nop.Core;
-using Nop.Core.Domain.Cms;
-using Nop.Core.Domain.Tasks;
-using Nop.Services.Cms;
+
 using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
-using Nop.Services.Messages;
+
 using Nop.Services.Plugins;
 using Nop.Services.Stores;
 using Nop.Services.Tasks;
-using Nop.Web.Framework.Infrastructure;
+
+using Nop.Web.Framework;
 using Nop.Web.Framework.Menu;
 
 namespace Rexfa.Plugin.CDN
@@ -81,6 +80,9 @@ namespace Rexfa.Plugin.CDN
             //settings
             _settingService.SaveSetting(new RexCDNSettings
             {
+                CSSFileDomainName="",
+                JSFileDomainName="",
+                PicFileDomainName="",
                 UseCSSFileDomainName = false,
                 UsePicFileDomainName = false,
                 UseJSFileDomainName = false
@@ -121,7 +123,7 @@ namespace Rexfa.Plugin.CDN
 	            <br />AWS的CDN服务为CloudFront，文档如下 (click <a href=""https://docs.aws.amazon.com/zh_cn/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.SimpleDistribution.html"" target=""_blank"">这里</a>).
 	            <br />注意本服务器和CDN设置必须契合，才能正确工作
                 <br /><b>到2020年4月地皆为Alpha版本，请注意系统状态。</b>
-	            <br />
+	            <br />测试连接 (click <a href=""/Plugins/RexCDN/TestHandler"" target=""_blank"">这里</a>).
             </p>");
 
 
@@ -161,6 +163,8 @@ namespace Rexfa.Plugin.CDN
             //    _scheduleTaskService.DeleteTask(task);
 
             //locales
+            //settings
+            _settingService.DeleteSetting<RexCDNSettings>();
             _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.PicFileDomainName");
             _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.PicFileDomainName.Hint");
             _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.JSFileDomainName");
@@ -185,11 +189,11 @@ namespace Rexfa.Plugin.CDN
             var menuItem = new SiteMapNode()
             {
                 SystemName = "Rexfa.Plugin.CDN",
-                Title = "Plugin Title",
-                ControllerName = "ControllerName",
-                ActionName = "List",
+                Title = "Rex CDN Settings",
+                ControllerName = "RexCDN",
+                ActionName = "Configure",
                 Visible = true,
-                RouteValues = new RouteValueDictionary() { { "area", null } },
+                RouteValues = new RouteValueDictionary() { { "area", AreaNames.Admin } },
             };
             var pluginNode = rootNode.ChildNodes.FirstOrDefault(x => x.SystemName == "Third party plugins");
             if (pluginNode != null)

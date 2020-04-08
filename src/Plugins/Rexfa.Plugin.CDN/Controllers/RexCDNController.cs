@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Rexfa.Plugin.CDN.Domain;
 using Rexfa.Plugin.CDN.Models;
 using Rexfa.Plugin.CDN.Services;
 using Nop.Core;
@@ -11,6 +10,7 @@ using Nop.Services;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
+using Nop.Services.Media;
 using Nop.Services.Messages;
 using Nop.Services.Security;
 using Nop.Web.Framework;
@@ -31,7 +31,7 @@ namespace Rexfa.Plugin.CDN.Controllers
         private readonly IPermissionService _permissionService;
         private readonly ISettingService _settingService;
         private readonly IStoreContext _storeContext;
-        private readonly RexCDNService _rexCDNService;
+        private readonly IPictureService _pictureService;
         private readonly RexCDNSettings _rexCDNSettings;
 
         #endregion
@@ -44,7 +44,7 @@ namespace Rexfa.Plugin.CDN.Controllers
             IPermissionService permissionService,
             ISettingService settingService,
             IStoreContext storeContext,
-            RexCDNService rexCDNService,
+            IPictureService pictureService,
             RexCDNSettings rexCDNSettings)
         {
             _localizationService = localizationService;
@@ -53,7 +53,7 @@ namespace Rexfa.Plugin.CDN.Controllers
             _permissionService = permissionService;
             _settingService = settingService;
             _storeContext = storeContext;
-            _rexCDNService = rexCDNService;
+            _pictureService = pictureService;
             _rexCDNSettings = rexCDNSettings;
         }
 
@@ -132,7 +132,8 @@ namespace Rexfa.Plugin.CDN.Controllers
 
         public IActionResult TestHandler()
         {
-            return Content("", "application/json");
+            string currentPictureService =  _pictureService.GetType().FullName;
+            return Content(String.Format("currentPictureService={0}", currentPictureService), "application/json");
         }
         #endregion
     }

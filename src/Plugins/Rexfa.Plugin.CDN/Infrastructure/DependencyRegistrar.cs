@@ -2,6 +2,7 @@
 using Nop.Core.Configuration;
 using Nop.Core.Infrastructure;
 using Nop.Core.Infrastructure.DependencyManagement;
+using Nop.Services.Media;
 using Rexfa.Plugin.CDN.Services;
 
 namespace Rexfa.Plugin.CDN.Infrastructure
@@ -19,13 +20,15 @@ namespace Rexfa.Plugin.CDN.Infrastructure
         /// <param name="config">Config</param>
         public virtual void Register(ContainerBuilder builder, ITypeFinder typeFinder, NopConfig config)
         {
-            //register RushService
-            builder.RegisterType<RushService>().AsSelf().InstancePerLifetimeScope();
+            //register RexCDNService
+            //builder.RegisterType<RexCDNPictureService>().AsSelf().InstancePerLifetimeScope();
+            
+            builder.RegisterType<RexCDNPictureService>().As<IPictureService>().InstancePerLifetimeScope();
         }
 
         /// <summary>
         /// Order of this dependency registrar implementation
         /// </summary>
-        public int Order => 1;
+        public int Order => 6;
     }
 }
