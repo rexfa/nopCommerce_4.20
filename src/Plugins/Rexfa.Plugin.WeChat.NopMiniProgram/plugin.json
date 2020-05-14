@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Rexfa.cc",
+  "FriendlyName": "Rex NopMiniProgram Plugin",
+  "SystemName": "Rexfa.Plugin.WeChat.NopMiniProgram",
+  "Version": "1.00",
+  "SupportedVersions": [ "4.20" ],
+  "Author": "Rex Zhang",
+  "DisplayOrder": 1,
+  "FileName": "Rexfa.Plugin.WeChat.NopMiniProgram.dll",
+  "Description": "Wechat MiniProgram Plugin"
+}

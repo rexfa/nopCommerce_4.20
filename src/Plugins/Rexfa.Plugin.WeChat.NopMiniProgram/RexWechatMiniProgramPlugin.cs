@@ -13,14 +13,13 @@ using Nop.Services.Tasks;
 
 using Nop.Web.Framework;
 using Nop.Web.Framework.Menu;
+using Nop.Services.Authentication.External;
 
-namespace Rexfa.Plugin.CDN
+namespace Rexfa.Plugin.WeChat.NopMiniProgram
 {
-    /// <summary>
-    /// Represents the RexCDN plugin
-    /// </summary>
-    public class RexCDNPlugin : BasePlugin, IAdminMenuPlugin, IMiscPlugin
+    public class RexWechatMiniProgramPlugin : BasePlugin, IAdminMenuPlugin, IMiscPlugin,IExternalAuthenticationMethod
     {
+
         #region Fields
 
 
@@ -37,7 +36,7 @@ namespace Rexfa.Plugin.CDN
 
         #region Ctor
 
-        public RexCDNPlugin(
+        public RexWechatMiniProgramPlugin(
             IGenericAttributeService genericAttributeService,
             ILocalizationService localizationService,
 
@@ -58,15 +57,13 @@ namespace Rexfa.Plugin.CDN
         }
 
         #endregion
-
         #region Methods
-
         /// <summary>
         /// Gets a configuration page URL
         /// </summary>
         public override string GetConfigurationPageUrl()
         {
-            return $"{_webHelper.GetStoreLocation()}Admin/RexCDN/Configure";
+            return $"{_webHelper.GetStoreLocation()}Admin/NopMiniProgram/Configure";
         }
 
         /// <summary>
@@ -75,15 +72,12 @@ namespace Rexfa.Plugin.CDN
         public override void Install()
         {
             //settings
-            _settingService.SaveSetting(new RexCDNSettings
+            _settingService.SaveSetting(new RexWechatMiniProgramSettings
             {
-                CSSFileDomainName="",
-                JSFileDomainName="",
-                PicFileDomainName="",
-                UseCSSFileDomainName = false,
-                UsePicFileDomainName = false,
-                UseJSFileDomainName = false
-
+                WXAppID="",
+                WXAppKey="",
+                WXAppName="",
+                WXAppSign=""
             });
 
 
@@ -101,26 +95,22 @@ namespace Rexfa.Plugin.CDN
             //}
 
             //locales
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.PicFileDomainName", "图片域名地址");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.PicFileDomainName.Hint", "图片域名地址");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.JSFileDomainName", "JavaScript域名地址");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.JSFileDomainName.Hint", "JavaScript域名地址");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.CSSFileDomainName", "CSS域名地址");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.CSSFileDomainName.Hint", "CSS域名地址");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppID",  "微信小程序AppID");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppKey", "内部通讯Key");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppName", "微信小程序名称");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppSign", "通讯数据校验签名");
 
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.UsePicFileDomainName", "使用图片域名地址");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.UseJSFileDomainName", "使用图片域名地址");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.UseCSSFileDomainName", "使用图片域名地址");
 
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexCDN.Instructions", @"
+
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.Instructions", @"
             <p>
-	            <b>如果您使用此插件，请确保域名各个域名指向和浏览器接受域名绑定情况</b>
+	            <b>如果您使用此插件，请确保域名和腾讯微信开发者签署情况</b>
 	            <br />
-	            <br />要使用网络服务商的CDN服务，首先要有完善的域名操作经验<br />
-	            <br />AWS的CDN服务为CloudFront，文档如下 (click <a href=""https://docs.aws.amazon.com/zh_cn/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.SimpleDistribution.html"" target=""_blank"">这里</a>).
+	            <br />商城必须通过域名备案和拥有SSL证书<br />
+	            <br />腾讯微信小程序开发者文档如下： (click <a href=""https://developers.weixin.qq.com/miniprogram/dev/framework/"" target=""_blank"">这里</a>).
 	            <br />注意本服务器和CDN设置必须契合，才能正确工作
-                <br /><b>到2020年4月地皆为Alpha版本，请注意系统状态。</b>
-	            <br />测试连接 (click <a href=""/Plugins/RexCDN/TestHandler"" target=""_blank"">这里</a>).
+                <br /><b>本插件2020年开始开发。</b>
+	            <br />测试连接 (click <a href=""/Plugins/NopMiniProgram/TestHandler"" target=""_blank"">这里</a>).
             </p>");
 
 
@@ -161,7 +151,7 @@ namespace Rexfa.Plugin.CDN
 
             //locales
             //settings
-            _settingService.DeleteSetting<RexCDNSettings>();
+            _settingService.DeleteSetting<RexWechatMiniProgramSettings>();
             _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.PicFileDomainName");
             _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.PicFileDomainName.Hint");
             _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.JSFileDomainName");
@@ -177,17 +167,14 @@ namespace Rexfa.Plugin.CDN
 
             base.Uninstall();
         }
-        /// <summary>
-        /// 建立主菜单选项
-        /// </summary>
-        /// <param name="rootNode"></param>
+
         public void ManageSiteMap(SiteMapNode rootNode)
         {
             var menuItem = new SiteMapNode()
             {
-                SystemName = "Rexfa.Plugin.CDN",
-                Title = "Rex CDN Settings",
-                ControllerName = "RexCDN",
+                SystemName = " Rexfa.Plugin.WeChat.NopMiniProgram",
+                Title = "Rex MiniProgram Settings",
+                ControllerName = "NopMiniProgram",
                 ActionName = "Configure",
                 Visible = true,
                 RouteValues = new RouteValueDictionary() { { "area", AreaNames.Admin } },
@@ -199,8 +186,11 @@ namespace Rexfa.Plugin.CDN
                 rootNode.ChildNodes.Add(menuItem);
         }
 
+        public string GetPublicViewComponentName()
+        {
+            return RexWechatMiniProgramDefaults.VIEW_COMPONENT_NAME;
+        }
+
         #endregion
-
-
     }
 }
