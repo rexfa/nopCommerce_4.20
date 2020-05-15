@@ -23,12 +23,12 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Infrastructure
             //register RexCDNService
             //builder.RegisterType<RexCDNPictureService>().AsSelf().InstancePerLifetimeScope();
             
-            builder.RegisterType<RexCDNPictureService>().As<IPictureService>().InstancePerLifetimeScope();
+            //builder.RegisterType<RexCDNPictureService>().As<IPictureService>().InstancePerLifetimeScope();
         }
 
         /// <summary>
         /// Order of this dependency registrar implementation
         /// </summary>
-        public int Order => 6;
+        public int Order => 19;
     }
 }

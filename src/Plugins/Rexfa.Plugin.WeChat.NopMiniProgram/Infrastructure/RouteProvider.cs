@@ -14,8 +14,13 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Infrastructure
         public void RegisterRoutes(IRouteBuilder routeBuilder)
         {
             //Test
-            routeBuilder.MapRoute("Rexfa.Plugin.WeChat.NopMiniProgram.TestHandler", "Plugins/RexCDN/TestHandler",
+            routeBuilder.MapRoute(RexWechatMiniProgramDefaults.ImportTestRoute, "Plugins/NopMiniProgram/TestHandler",
                  new { controller = "NopMiniProgram", action = "TestHandler" });
+
+            routeBuilder.MapRoute(RexWechatMiniProgramDefaults.ImportHomeRoute, "Plugins/RexWechatMiniProgram/Home",
+                new { controller = "Home", action = "Index" });
+            routeBuilder.MapRoute(RexWechatMiniProgramDefaults.ImportCustomerRoute, "Plugins/RexWechatMiniProgram/Customer",
+                new { controller = "Customer", action = "Index" });
 
 
         }
