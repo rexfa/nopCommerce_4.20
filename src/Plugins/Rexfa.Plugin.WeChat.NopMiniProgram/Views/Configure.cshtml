@@ -1,4 +1,4 @@
-﻿@model Rexfa.Plugin.WeChat.NopMiniProgram.Models
+﻿@model Rexfa.Plugin.WeChat.NopMiniProgram.Models.NopMiniProgramModel
 @inject Nop.Core.IWebHelper webHelper
 @{
     Layout = "_ConfigurePlugin";
@@ -18,7 +18,7 @@
     }*@
 </script>
 
-<form asp-controller="RexCDN" asp-action="Configure" method="post">
+<form asp-controller="NopMiniProgram" asp-action="Configure" method="post">
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-body">
@@ -45,22 +45,22 @@
                 </div>
                 <div class="form-group">
                     <div class="col-md-3">
-                        <nop-override-store-checkbox asp-for="WXAppSign_OverrideForStore" asp-input="WXAppSign" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
-                        <nop-label asp-for="WXAppSign" />
+                        <nop-override-store-checkbox asp-for="WXAppSecret_OverrideForStore" asp-input="WXAppSecret" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="WXAppSecret" />
                     </div>
                     <div class="col-md-9">
-                        <nop-editor asp-for="WXAppSign" />
-                        <span asp-validation-for="WXAppSign"></span>
+                        <nop-editor asp-for="WXAppSecret" />
+                        <span asp-validation-for="WXAppSecret"></span>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-3">
-                        <nop-override-store-checkbox asp-for="WXAppKey_OverrideForStore" asp-input="WXAppKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
-                        <nop-label asp-for="WXAppKey" />
+                        <nop-override-store-checkbox asp-for="WXAppVerifyCode_OverrideForStore" asp-input="WXAppVerifyCode" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="WXAppVerifyCode" />
                     </div>
                     <div class="col-md-9">
-                        <nop-editor asp-for="WXAppKey" />
-                        <span asp-validation-for="WXAppKey"></span>
+                        <nop-editor asp-for="WXAppVerifyCode" />
+                        <span asp-validation-for="WXAppVerifyCode"></span>
                     </div>
                 </div>
                 <div class="form-group">

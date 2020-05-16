@@ -15,11 +15,11 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram
         /// <summary>
         /// Gets or sets the Weixin App Sign
         /// </summary>
-        public string WXAppSign { get; set; }
+        public string WXAppVerifyCode { get; set; }
         /// <summary>
         /// Gets or sets the Weixin App Key
         /// </summary>
-        public string WXAppKey { get; set; }
+        public string WXAppSecret { get; set; }
 
     }
 }

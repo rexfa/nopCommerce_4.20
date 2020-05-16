@@ -19,6 +19,8 @@ using Nop.Web.Framework.Mvc.Filters;
 
 namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
 {
+    [AuthorizeAdmin]
+    [Area(AreaNames.Admin)]
     public class NopMiniProgramController : BasePluginController
     {
         #region Fields
@@ -70,8 +72,8 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
             {
                 WXAppID = _rexWechatMiniProgramSettings.WXAppID,
                 WXAppName = _rexWechatMiniProgramSettings.WXAppName,
-                WXAppSign = _rexWechatMiniProgramSettings.WXAppSign,
-                WXAppKey = _rexWechatMiniProgramSettings.WXAppKey,
+                WXAppVerifyCode = _rexWechatMiniProgramSettings.WXAppVerifyCode,
+                WXAppSecret = _rexWechatMiniProgramSettings.WXAppSecret,
                 ActiveStoreScopeConfiguration = storeScope
             };
 
@@ -79,8 +81,8 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
                 return View("~/Plugins/Rexfa.Plugin.WeChat.NopMiniProgram/Views/Configure.cshtml", model);
             model.WXAppID_OverrideForStore = _settingService.SettingExists(rexWechatMiniProgramSettings, x => x.WXAppID, storeScope);
             model.WXAppName_OverrideForStore = _settingService.SettingExists(rexWechatMiniProgramSettings, x => x.WXAppName, storeScope);
-            model.WXAppSign_OverrideForStore = _settingService.SettingExists(rexWechatMiniProgramSettings, x => x.WXAppSign, storeScope);
-            model.WXAppKey_OverrideForStore = _settingService.SettingExists(rexWechatMiniProgramSettings, x => x.WXAppKey, storeScope);
+            model.WXAppVerifyCode_OverrideForStore = _settingService.SettingExists(rexWechatMiniProgramSettings, x => x.WXAppVerifyCode, storeScope);
+            model.WXAppSecret_OverrideForStore = _settingService.SettingExists(rexWechatMiniProgramSettings, x => x.WXAppSecret, storeScope);
             return View("~/Plugins/Rexfa.Plugin.WeChat.NopMiniProgram/Views/Configure.cshtml", model);
         }
 
@@ -98,8 +100,8 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
             //save settings
             _rexWechatMiniProgramSettings.WXAppID = model.WXAppID;
             _rexWechatMiniProgramSettings.WXAppName = model.WXAppName;
-            _rexWechatMiniProgramSettings.WXAppSign = model.WXAppSign;
-            _rexWechatMiniProgramSettings.WXAppKey = model.WXAppKey;
+            _rexWechatMiniProgramSettings.WXAppVerifyCode = model.WXAppVerifyCode;
+            _rexWechatMiniProgramSettings.WXAppSecret = model.WXAppSecret;
 
 
 
@@ -125,8 +127,9 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
 
         public IActionResult TestHandler()
         {
-            string currentPictureService = _pictureService.GetType().FullName;
-            return Content(String.Format("currentPictureService={0}", currentPictureService), "application/json");
+            //string currentPictureService = _pictureService.GetType().FullName;
+            string getHello = "WeChat miniprogram plugin~";
+            return Content(String.Format("This is {0}", getHello), "application/json");
         }
         #endregion
     }

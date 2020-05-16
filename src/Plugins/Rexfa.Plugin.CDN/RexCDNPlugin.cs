@@ -120,7 +120,7 @@ namespace Rexfa.Plugin.CDN
 	            <br />AWS的CDN服务为CloudFront，文档如下 (click <a href=""https://docs.aws.amazon.com/zh_cn/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.SimpleDistribution.html"" target=""_blank"">这里</a>).
 	            <br />注意本服务器和CDN设置必须契合，才能正确工作
                 <br /><b>到2020年4月地皆为Alpha版本，请注意系统状态。</b>
-	            <br />测试连接 (click <a href=""/Plugins/RexCDN/TestHandler"" target=""_blank"">这里</a>).
+	            <br />测试连接 (click <a href=""/Admin/RexCDN/TestHandler"" target=""_blank"">这里</a>).
             </p>");
 
 

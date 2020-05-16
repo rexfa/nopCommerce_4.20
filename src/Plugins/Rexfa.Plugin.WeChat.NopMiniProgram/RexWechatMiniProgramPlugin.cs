@@ -75,9 +75,9 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram
             _settingService.SaveSetting(new RexWechatMiniProgramSettings
             {
                 WXAppID="",
-                WXAppKey="",
+                WXAppSecret="",
                 WXAppName="",
-                WXAppSign=""
+                WXAppVerifyCode=""
             });
 
 
@@ -96,9 +96,9 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram
 
             //locales
             _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppID",  "微信小程序AppID");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppKey", "内部通讯Key");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppSecret", "微信App通讯Secret");
             _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppName", "微信小程序名称");
-            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppSign", "通讯数据校验签名");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppVerifyCode", "通讯数据校验");
 
 
 
@@ -110,7 +110,7 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram
 	            <br />腾讯微信小程序开发者文档如下： (click <a href=""https://developers.weixin.qq.com/miniprogram/dev/framework/"" target=""_blank"">这里</a>).
 	            <br />注意本服务器和CDN设置必须契合，才能正确工作
                 <br /><b>本插件2020年开始开发。</b>
-	            <br />测试连接 (click <a href=""/Plugins/NopMiniProgram/TestHandler"" target=""_blank"">这里</a>).
+	            <br />测试连接 (click <a href=""/Admin/NopMiniProgram/TestHandler"" target=""_blank"">这里</a>).
             </p>");
 
 
@@ -152,17 +152,14 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram
             //locales
             //settings
             _settingService.DeleteSetting<RexWechatMiniProgramSettings>();
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.PicFileDomainName");
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.PicFileDomainName.Hint");
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.JSFileDomainName");
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.JSFileDomainName.Hint");
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.CSSFileDomainNanme");
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.CSSFileDomainNanme.Hint");
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.Instructions");
+            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppID");
+            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppSecret");
+            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppName");
+            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.WXAppVerifyCode");
 
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.UsePicFileDomainName");
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.UseJSFileDomainName");
-            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexCDN.UseCSSFileDomainName");
+            _localizationService.DeletePluginLocaleResource("Plugins.Misc.RexNopMiniProgram.Instructions");
+
+
 
 
             base.Uninstall();

@@ -24,13 +24,13 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Models
         public string WXAppName { get; set; }
         public bool WXAppName_OverrideForStore { get; set; }
 
-        [NopResourceDisplayName("Plugins.Misc.RexNopMiniProgram.WXAppSign")]
-        public string WXAppSign { get; set; }
-        public bool WXAppSign_OverrideForStore { get; set; }
+        [NopResourceDisplayName("Plugins.Misc.RexNopMiniProgram.WXAppVerifyCode")]
+        public string WXAppVerifyCode { get; set; }
+        public bool WXAppVerifyCode_OverrideForStore { get; set; }
 
-        [NopResourceDisplayName("Plugins.Misc.RexNopMiniProgram.WXAppKey")]
-        public string WXAppKey { get; set; }
-        public bool WXAppKey_OverrideForStore { get; set; }
+        [NopResourceDisplayName("Plugins.Misc.RexNopMiniProgram.WXAppSecret")]
+        public string WXAppSecret { get; set; }
+        public bool WXAppSecret_OverrideForStore { get; set; }
 
         #endregion
     }
