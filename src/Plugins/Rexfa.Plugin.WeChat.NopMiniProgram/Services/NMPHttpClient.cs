@@ -66,16 +66,38 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Services
                 // 45011   频率限制，每个用户每分钟100次
                 throw new NopException("WXcode2SessionResult is err,Code is " + wxcode2SessionResult.errcode);
             }
+        }
 
+        public WXcode2SessionResult GetWXcode2SessionResult(string result)
+        {
+            WXcode2SessionResult wxcode2SessionResult = JsonConvert.DeserializeObject<WXcode2SessionResult>(result);
+            if (wxcode2SessionResult.errcode == 0)
+            {
+                return wxcode2SessionResult;
+            }
+            else
+            {
+                // -1  系统繁忙，此时请开发者稍候再试
+                // 0   请求成功
+                // 40029   code 无效
+                // 45011   频率限制，每个用户每分钟100次
+                throw new NopException("WXcode2SessionResult is err,Code is " + wxcode2SessionResult.errcode);
+            }
         }
-        [Serializable]
-        internal class WXcode2SessionResult{
-            public string openid { get; set; }
-            public string session_key { get; set; }
-            public string unionid { get; set; }
-            public int errcode { get; set; }
-            public string errmsg { get; set; }
-        }
+
+
         #endregion
+    }
+    /// <summary>
+    /// 这里给出用户登陆时候微信可以返回的值
+    /// </summary>
+    [Serializable]
+    public class WXcode2SessionResult
+    {
+        public string openid { get; set; }
+        public string session_key { get; set; }
+        public string unionid { get; set; }
+        public int errcode { get; set; }
+        public string errmsg { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Infrastructure
         /// <param name="configuration">Configuration of the application</param>
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            //client to request SnapPay services
+            //client to request WeChat services
             services.AddHttpClient<NMPHttpClient>().WithProxy();
         }
 

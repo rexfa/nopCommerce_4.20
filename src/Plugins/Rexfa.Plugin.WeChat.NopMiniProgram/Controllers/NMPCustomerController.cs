@@ -1757,8 +1757,14 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
             try
             {
                 string result = _nmpHttpClient.GetToWebApi(string.Format(RexWechatMiniProgramDefaults.WXMPApiGetOpenidURL, _rexWechatMiniProgramSettings.WXAppID, _rexWechatMiniProgramSettings.WXAppSecret, wxLoginCode, "authorization_code"));
-                string openid = _nmpHttpClient.GetOpenidByResult(result);
+                //string openid = _nmpHttpClient.GetOpenidByResult(result);
+                var wxResultClass =_nmpHttpClient.GetWXcode2SessionResult(result);
+                string openid = wxResultClass.openid;
+
+                //_customerService.GetCustomerByUsername()
+
                 ToMPOpenid toMPOpenid = new ToMPOpenid { openid=openid};
+                _logger.Information("WX OpenId  :"+ openid);
                 return Content(JsonConvert.SerializeObject(toMPOpenid));
             }
             catch (NopException ex)
