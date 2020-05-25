@@ -44,6 +44,7 @@ using Nop.Web.Models.Customer;
 
 using Nop.Web.Controllers;
 using Rexfa.Plugin.WeChat.NopMiniProgram.Services;
+using Rexfa.Plugin.WeChat.NopMiniProgram.Common;
 using Newtonsoft.Json;
 
 namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
@@ -98,6 +99,8 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
         private readonly TaxSettings _taxSettings;
         private readonly NMPHttpClient _nmpHttpClient;
         private readonly RexWechatMiniProgramSettings _rexWechatMiniProgramSettings;
+
+        private CustomerHandle _customerHandle;
 
         #endregion
         #region Ctor
@@ -191,6 +194,8 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
             _taxSettings = taxSettings;
             _nmpHttpClient = nmpHttpClient;
             _rexWechatMiniProgramSettings = rexWechatMiniProgramSettings;
+
+            _customerHandle = new CustomerHandle(_customerRegistrationService, _customerService);
         }
 
         #endregion
@@ -1762,15 +1767,15 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
                 string openid = wxResultClass.openid;
 
                 //_customerService.GetCustomerByUsername()
-
-                ToMPOpenid toMPOpenid = new ToMPOpenid { openid=openid};
+                string verifyString = _customerHandle.GetNMPOpenIdVerify(openid, _rexWechatMiniProgramSettings.WXAppVerifyCode);
+                ToMPOpenid toMPOpenid = new ToMPOpenid { Openid = openid,VerifyString= verifyString };
                 _logger.Information("WX OpenId  :"+ openid);
                 return Content(JsonConvert.SerializeObject(toMPOpenid));
             }
             catch (NopException ex)
             {
                 _logger.Error(ex.Message);
-                ToMPOpenid toMPOpenid = new ToMPOpenid { openid = "Err" };
+                ToMPOpenid toMPOpenid = new ToMPOpenid { Openid = "Err" };
                 return Content(JsonConvert.SerializeObject(toMPOpenid));
             }
             
@@ -1778,7 +1783,8 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
         [Serializable]
         internal class ToMPOpenid
         {
-            public string openid { get; set; }
+            public string Openid { get; set; }
+            public string VerifyString { get; set; }
         }
         #endregion
 
