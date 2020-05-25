@@ -1756,6 +1756,7 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
 
             return View(model);
         }
+        #region Wechat MiniProgramme
         [HttpGet]
         public IActionResult NMPRegisterAndLogin(string wxLoginCode)
         {
@@ -1786,6 +1787,47 @@ namespace Rexfa.Plugin.WeChat.NopMiniProgram.Controllers
             public string Openid { get; set; }
             public string VerifyString { get; set; }
         }
+        [HttpPost]
+        public IActionResult NMPRegisterAndLogin()
+        {
+            string fromMPRLResultString =  Request.Form.FirstOrDefault().ToString();
+
+            FromMPRLResult fromMPRLResult = JsonConvert.DeserializeObject<FromMPRLResult>(fromMPRLResultString);
+            _logger.Information("Get NMP Nikename : " +fromMPRLResult.NikeName);
+            ToMPRLResult toMPRLResult = new ToMPRLResult
+            {
+                Code = -99,
+                Message = "Test",
+                Openid = fromMPRLResult.Openid,
+                RegisterOrLogin = "Null",
+                VerifyString = fromMPRLResult.VerifyString
+            };
+            return Content(JsonConvert.SerializeObject(toMPRLResult));
+        }
+        [Serializable]
+        internal class FromMPRLResult
+        {
+            public string Openid { get; set; }
+            public string VerifyString { get; set; }
+            public string NikeName { get; set; }
+            public string AvatarUrl { get; set; }
+            public string Ctiy { get; set; }
+            public string Country { get; set; }
+            public string Gender { get; set; }
+            public string Language { get; set; }
+            public string Province { get; set; }
+        }
+        [Serializable]
+        internal class ToMPRLResult
+        {
+            public string Openid { get; set; }
+            public string VerifyString { get; set; }
+            public string RegisterOrLogin { get; set; }
+            public int Code { get; set; }
+            public string Message { get; set; }
+        }
+
+        #endregion
         #endregion
 
         #endregion
